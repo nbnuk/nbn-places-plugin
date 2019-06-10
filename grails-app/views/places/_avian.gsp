@@ -1,0 +1,3 @@
+<b>Bats</b> – Bats use both the buildings and also the mature and veteran trees within burial grounds to roost, breed and overwinter. These places are relatively unchanging and so populations may have built up over centuries. In addition, bats may forage and feed over the grassland and other vegetation, taking advantage of the wide variety of insect species to be found.<br/><br/>
+
+<b>Swifts</b> – The eaves, roofs, towers and steeples of historic churches and chapels, combined with the space around them for accessing nooks and crannies make burial grounds excellent for nesting swifts.  These buildings are relatively unchanging and so populations may have built up over centuries. Nests are hard to find and so surveying is crucial for good management.

@@ -1,0 +1,2 @@
+The UK holds a globally important population of veteran and ancient yew trees of which three-quarters are found in the churchyards of England and Wales. There are about 800 of these ancient and veteran yews, aged from 500 to several 1,000 years old, with no known upper age limit. Burial grounds may contain veteran trees of other species.<br/><br/>
+Burial grounds may also contain veteran trees of other species, acting as hosts to a wealth of associated plants, animals, lichen and fungi.
