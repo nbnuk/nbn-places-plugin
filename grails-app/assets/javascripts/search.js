@@ -55,14 +55,7 @@ $(document).ready(function() {
     });
 
     // AJAX search results
-    if (SEARCH_CONF.isNBNinns) {
-        injectBiocacheResultsActual(MAP_CONF.allResultsOccurrenceRecords, SEARCH_CONF.maxSpecies);
-        $('#related-searches').removeClass('hide');
-    } else {
-        if (!(SEARCH_CONF.isNBNni)) {
-            injectBiocacheResults();
-        }
-    }
+    injectBiocacheResults();
 
     fixTabTwoPaginationLinks();
 
@@ -267,7 +260,7 @@ function injectBiocacheSearch(lsids, recsTot) {
 function injectBiocacheResultsActual(recsTot, limitSpp) {
     var q = $.getQueryParam('q') ? $.getQueryParam('q') : SEARCH_CONF.query ;
     var fqList = $.getQueryParam('fq');
-    var url = SEARCH_CONF.bieUrl + "/occurrences?q=" + q + (fqList? "&fq=" + fqList.join("&fq=") : "") + "&fq=" + SEARCH_CONF.recordsFilter;
+    var url = SEARCH_CONF.biocacheUrl + "/occurrences?q=" + q + (fqList? "&fq=" + fqList.join("&fq=") : "") + "&fq=" + SEARCH_CONF.recordsFilter;
     var html = "<span class='biocacheRecordsLink'><a href=\"" + url + "\" id=\"biocacheRecordsLink\" title='View occurrences for up to " + limitSpp + " species'>View occurrence records</a> (" + numberWithCommas(recsTot) + ")</span>";
     $(".record-cursor-details").append(html);
 }

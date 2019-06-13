@@ -15,11 +15,12 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <g:set var="alaUrl" value="${grailsApplication.config.ala.baseURL}"/>
 <g:set var="biocacheUrl" value="${grailsApplication.config.biocache.baseURL}"/>
-<g:set var="bieUrl" value="${}"/>
+<g:set var="bieUrl" value="${grailsApplication.config.bie.baseURL}"/>
+<g:set var="placesUrl" value="${grailsApplication.config.places.baseURL}"/>
 <g:set var="speciesListUrl" value="${grailsApplication.config.speciesList.baseURL}"/>
 <g:set var="spatialPortalUrl" value="${grailsApplication.config.spatial.baseURL}"/>
 <g:set var="collectoryUrl" value="${grailsApplication.config.collectory.baseURL}"/>
-<g:set var="alertsUrl" value="${grailsApplication.config.alerts.url}"/>
+<g:set var="alertsUrl" value="${grailsApplication.config.alerts.baseURL}"/>
 <g:set var="guid" value="${placeDetails?.guid ?: ''}"/>
 <g:set var="tabs" value="${grailsApplication.config.show.tabs.split(',')}"/>
 <g:set var="jsonLink" value="TODO_json"/>
@@ -230,7 +231,8 @@
         serverName:         "${grailsApplication.config.grails.serverURL}",
         speciesListUrl:     "${grailsApplication.config.speciesList.baseURL}",
         bieUrl:             "${grailsApplication.config.bie.baseURL}",
-        alertsUrl:          "${grailsApplication.config.alerts.baseUrl}",
+        placesUrl:          "${grailsApplication.config.places.baseURL}",
+        alertsUrl:          "${grailsApplication.config.alerts.baseURL}",
         remoteUser:         "${request.remoteUser ?: ''}",
         eolUrl:             "TODO_eol",
         eolLanguage:        "${grailsApplication.config.eol.lang}",
@@ -252,14 +254,10 @@
 
         speciesAdditionalHeadlines: "${grailsApplication.config.species?.additionalHeadlines?:''}",
         speciesAdditionalHeadlinesSpeciesList: "${grailsApplication.config.species?.additionalHeadlinesSpeciesList?:''}",
-        tagNNSSlist:        "${grailsApplication.config.species?.tagNNSSlist?:''}",
-        tagNNSSlistHTML:    "${grailsApplication.config.species?.tagNNSSlistHTML?:''}",
-        speciesShowNNSSlink: "${grailsApplication.config.species?.showNNSSlink?:''}",
         speciesListLinks:   "${grailsApplication.config.species?.listLinks?:''}",
         nbnRegion:          "${grailsApplication.config.nbn?.region?:"n/a"}",
 
-        troveUrl:           "TODO_trove",
-        bhlUrl:             "TODO_bhl"
+        troveUrl:           "TODO_trove"
 };
 
 var MAP_CONF = {
@@ -287,7 +285,7 @@ var MAP_CONF = {
         defaultMapId:               "${grailsApplication.config.map.default.id}",
         defaultMapToken:            "${grailsApplication.config.map.default.token}",
         recordsMapColour:           "${grailsApplication.config.map.records.colour}",
-        mapQueryContext:            "${recordsFilterToggle == 'biocacheService-altQueryContext'? (grailsApplication.config?.biocacheService?.altQueryContext ?: '') : (grailsApplication.config?.biocacheService?.queryContext ?: '')}",
+        mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
         additionalMapFilter:        "${raw(grailsApplication.config.additionalMapFilter)}",
         map:                        null,
         mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},

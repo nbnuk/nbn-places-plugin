@@ -18,7 +18,6 @@ class UrlMappings {
         "/image-search/showSpecies"(controller: "places", action: "imageSearch")
         "/image-search/infoBox"(controller: "places", action: "infoBox")
         "/image-search/$id**"(controller: "places", action: "imageSearch")
-        "/bhl-search"(controller: "places", action: "bhlSearch")
         "/sound-search"(controller: "places", action: "soundSearch")
         "/logout"(controller: "places", action: "logout")
         "/"(view:"/index")

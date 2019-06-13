@@ -27,12 +27,9 @@ function showSpeciesPage() {
     //
     ////setup controls
     addAlerts();
-    // loadBhl(); // now an external link to BHL
-    //loadTrove(SHOW_CONF.troveUrl, SHOW_CONF.scientificName,'trove-integration','trove-result-list','previousTrove','nextTrove');
 
-    if (SHOW_CONF.speciesShowNNSSlink == "true") {
-        addNNSSlink();
-    }
+
+
 }
 
 //loads list membership and KVP details under 'Datasets' section, and also adds any headline items to subtitle
@@ -75,11 +72,7 @@ function loadSpeciesLists(){
             }
 
             //add header link to nonnativespecies.org entry if tagged species (INNS specific)
-            if (SHOW_CONF.speciesShowNNSSlink == "true") {
-                if (SHOW_CONF.tagNNSSlist == specieslist.dataResourceUid) {
-                    addNNSSlink(true, specieslist.list.listName);
-                }
-            }
+
 
             if (specieslist.list.isBIE) {
                 if (listsDone.indexOf(specieslist.dataResourceUid.toString()) != -1) {
@@ -146,14 +139,14 @@ function addAlerts(){
     $("#alertsButton").click(function(e) {
         e.preventDefault();
         var query = "Place: " + SHOW_CONF.clName;
-        var searchString = '?q=' + SHOW_CONF.cl + ':"' + SHOW_CONF.clName + '"';
+        var searchString = '?q=' + SHOW_CONF.cl + ':%22' + SHOW_CONF.clName + '%22';
         var url = SHOW_CONF.alertsUrl + "/webservice/createBiocacheNewRecordsAlert?";
-        url += "queryDisplayName=" + encodeURIComponent(query);
-        url += "&baseUrlForWS=" + encodeURIComponent(SHOW_CONF.biocacheServiceUrl);
+        url += "queryDisplayName=" + query;
+        url += "&baseUrlForWS=" + SHOW_CONF.biocacheServiceUrl;
         url += "&baseUrlForUI=" + encodeURIComponent(SHOW_CONF.serverName);
-        url += "&webserviceQuery=%2Foccurrences%2Fsearch" + encodeURIComponent(searchString);
+        url += "&webserviceQuery=%2Foccurrences%2Fsearch" + searchString;
         url += "&uiQuery=%2Foccurrences%2Fsearch%3Fq%3D*%3A*";
-        url += "&resourceName=" + encodeURIComponent("Atlas");
+        url += "&resourceName=" + "Atlas";
         window.location.href = url;
     });
 }
@@ -568,140 +561,6 @@ function getImageFooterFromOccurrence(el){
     return detailHtml;
 }
 
-function loadBhl() {
-    loadBhl(0, 10, false);
-}
-
-/**
- * BHL search to populate literature tab
- *
- * @param start
- * @param rows
- * @param scroll
- */
-function loadBhl(start, rows, scroll) {
-    if (!start) {
-        start = 0;
-    }
-    if (!rows) {
-        rows = 10;
-    }
-    // var url = "http://localhost:8080/bhl-ftindex-demo/search/ajaxSearch?q=" + $("#tbSearchTerm").val();
-    var source = SHOW_CONF.bhlURL;
-    var taxonName = SHOW_CONF.scientificName ;
-    var synonyms = SHOW_CONF.synonymsQuery;
-    var query = ""; // = taxonName.split(/\s+/).join(" AND ") + synonyms;
-    if (taxonName) {
-        var terms = taxonName.split(/\s+/).length;
-        if (terms > 2) {
-            query += taxonName.split(/\s+/).join(" AND ");
-        } else if (terms == 2) {
-            query += '"' + taxonName + '"';
-        } else {
-            query += taxonName;
-        }
-    }
-
-    if (synonyms) {
-        synonyms = synonyms.replace(/\\\"/g,'"'); // remove escaped quotes
-
-        if (taxonName) {
-            query += ' OR (' + synonyms + ")"
-        } else {
-            query += synonyms
-        }
-    }
-
-    if (!query) {
-        return cancelSearch("No names were found to search BHL");
-    }
-
-    var url = source + "?q=" + query + '&start=' + start + "&rows=" + rows +
-        "&wt=json&fl=name%2CpageId%2CitemId%2Cscore&hl=on&hl.fl=text&hl.fragsize=200&" +
-        "group=true&group.field=itemId&group.limit=7&group.ngroups=true&taxa=false";
-
-    var buf = "";
-    $("#status-box").css("display", "block");
-    $("#synonyms").html("").css("display", "none")
-    $("#bhl-results-list").html("");
-
-    $.ajax({
-        url: url,
-        dataType: 'jsonp',
-        jsonp: "json.wrf",
-        success:  function(data) {
-            var itemNumber = parseInt(data.responseHeader.params.start, 10) + 1;
-            var maxItems = parseInt(data.grouped.itemId.ngroups, 10);
-            if (maxItems == 0) {
-                return cancelSearch("No references were found for <pre>" + query + "</pre>");
-            }
-            var startItem = parseInt(start, 10);
-            var pageSize = parseInt(rows, 10);
-            var showingFrom = startItem + 1;
-            var showingTo = (startItem + pageSize <= maxItems) ? startItem + pageSize : maxItems ;
-            buf += '<div class="results-summary">Showing ' + showingFrom + " to " + showingTo + " of " + maxItems +
-                ' results for the query <pre>' + query + '</pre></div>'
-            // grab highlight text and store in map/hash
-            var highlights = {};
-            $.each(data.highlighting, function(idx, hl) {
-                highlights[idx] = hl.text[0];
-            });
-            //console.log("highlighting", highlights, itemNumber);
-            $.each(data.grouped.itemId.groups, function(idx, obj) {
-                buf += '<div class="result">';
-                buf += '<h3><b>' + itemNumber++;
-                buf += '.</b> <a target="item" href="http://biodiversitylibrary.org/item/' + obj.groupValue + '">' + obj.doclist.docs[0].name + '</a> ';
-                var suffix = '';
-                if (obj.doclist.numFound > 1) {
-                    suffix = 's';
-                }
-                buf += '(' + obj.doclist.numFound + '</b> matching page' + suffix + ')</h3><div class="thumbnail-container">';
-
-                $.each(obj.doclist.docs, function(idx, page) {
-                    var highlightText = $('<div>'+highlights[page.pageId]+'</div>').htmlClean({allowedTags: ["em"]}).html();
-                    buf += '<div class="page-thumbnail"><a target="page image" href="http://biodiversitylibrary.org/page/' +
-                        page.pageId + '"><img src="http://biodiversitylibrary.org/pagethumb/' + page.pageId +
-                        '" alt="' + escapeHtml(highlightText) + '"  width="60px" height="100px"/></a></div>';
-                })
-                buf += "</div><!--end .thumbnail-container -->";
-                buf += "</div>";
-            })
-
-            var prevStart = start - rows;
-            var nextStart = start + rows;
-
-            buf += '<div id="button-bar">';
-            if (prevStart >= 0) {
-                buf += '<input type="button" class="btn" value="Previous page" onclick="loadBhl(' + prevStart + ',' + rows + ', true)">';
-            }
-            buf += '&nbsp;&nbsp;&nbsp;';
-            if (nextStart <= maxItems) {
-                buf += '<input type="button" class="btn" value="Next page" onclick="loadBhl(' + nextStart + ',' + rows + ', true)">';
-            }
-
-            buf += '</div>';
-
-            $("#bhl-results-list").html(buf);
-            if (data.synonyms) {
-                buf = "<b>Synonyms used:</b>&nbsp;";
-                buf += data.synonyms.join(", ");
-                $("#synonyms").html(buf).css("display", "block");
-            } else {
-                $("#synonyms").html("").css("display", "none");
-            }
-            $("#status-box").css("display", "none");
-
-            if (scroll) {
-                $('html, body').animate({scrollTop: '300px'}, 300);
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            $("#status-box").css("display", "none");
-            $("#solr-results").html('An error has occurred, probably due to invalid query syntax');
-        }
-    });
-} // end doSearch
-
 function cancelSearch(msg) {
     $("#status-box").css("display", "none");
     $("#solr-results").html(msg);
@@ -737,32 +596,6 @@ function collapseImageGallery(btn) {
         $(btn).addClass('btn-primary');
 
         $(btn).parents('.image-section').find('.taxon-gallery').slideUp(400)
-    }
-}
-
-function addNNSSlink(inHeader, listName) {
-    //opens in new tab. Haven't found a clean way of respecting user instructions on same or new tab opening for a form post
-    if (typeof inHeader === 'undefined') { inHeader = false; }
-    if (typeof listName === 'undefined') { listName = ''; }
-    var NNSSform = "<form style='display:inline' method='post' action='http://www.nonnativespecies.org/factsheet/index.cfm' id='NNSSform" + (inHeader? "_header" : "") + "' target='_blank'>" +
-        "<input type='hidden' value='" + (SHOW_CONF.scientificName).replace(/'/g, '') + "' name='query'>" +
-        "</form>";
-    if (inHeader) {
-        NNSSform += "<a id='NNSSform_submit_header' href='#'>" + $('<textarea/>').html(listName).text() + $('<textarea/>').html(SHOW_CONF.tagNNSSlistHTML).text() + "</a>";
-        var sppListHeaderHTML = "<h5 class='inline-head species-headline-" + SHOW_CONF.tagNNSSlist + "'>" + NNSSform;
-        sppListHeaderHTML += "</h5>";
-        $(sppListHeaderHTML).appendTo(".header-inner");
-        $("#NNSSform_submit_header").click(function() {
-            $("#NNSSform_header").submit();
-            return false;
-        });
-    } else {
-        NNSSform += "<a id='NNSSform_submit' href='#'>NNSS</a>";
-        $(".panel-resources ul").append('<li id="NNSSform_link">' + NNSSform + '&nbsp;<img src="/assets/newtab.gif"/></li>');
-        $("#NNSSform_submit").click(function() {
-            $("#NNSSform").submit();
-            return false;
-        });
     }
 }
 

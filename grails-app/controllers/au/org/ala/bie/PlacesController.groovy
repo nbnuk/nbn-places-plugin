@@ -89,11 +89,6 @@ class PlacesController {
     def getRecordsFilter() {
         //for record filter toggle
         def recordsFilter = grailsApplication.config?.biocacheService?.queryContext?:""
-        if (params.includeRecordsFilter) {
-            if (params.includeRecordsFilter == 'biocacheService-altQueryContext') {
-                recordsFilter = grailsApplication.config?.biocacheService?.altQueryContext ?: ""
-            }
-        }
         return recordsFilter
     }
 
@@ -138,7 +133,6 @@ class PlacesController {
                 def siteStats = searchResultsNamesAndRecCounts[0]?.fieldResult
                 if (siteStats) {
                     sr.results.each { result ->
-                        log.info("find name = " + result.name)
                         def siteStat = siteStats.find { element ->
                             element.label == result.name
                         }
@@ -342,10 +336,6 @@ class PlacesController {
         model
     }
 
-    def bhlSearch = {
-        render (view: 'bhlSearch')
-    }
-
     def soundSearch = {
         def result = biocacheService.getSoundsForTaxon(params.s)
         render(contentType: "text/json") {
@@ -416,7 +406,7 @@ class PlacesController {
 
 
     def occurrences(){
-        def title = "INNS species" //TODO
+        def title = "TODO: INNS species" //TODO
         //getAllResults()
 
         def url = biocacheService.performBatchSearch(allResultsGuids, title, recordsFilter)

@@ -56,27 +56,7 @@ class BieTagLib {
         out << MessageFormat.format(format, nameFormatted, accepted)
     }
 
-    /**
-     * Constructs a link to EYA from this locality.
-     */
-    def constructEYALink = {  attrs, body ->
 
-       def group = attrs.result.centroid =~ /([\d.-]+) ([\d.-]+)/
-       def bieUrl = grailsApplication.config.biocache.baseURL
-
-       def parsed = group && group[0] && group[0].size() == 3
-       if(parsed){
-           def latLong = group[0]
-           out <<  "<a href='" + bieUrl + "/explore/your-area#" +
-                   latLong[2] + "|" + latLong[1] + "|12|ALL_SPECIES'>"
-       }
-
-       out << body()
-
-       if(parsed){
-           out << "</a>"
-       }
-    }
 
     /**
      * Output the colour name for a given conservationstatus

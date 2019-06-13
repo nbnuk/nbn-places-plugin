@@ -31,16 +31,13 @@
             searchResultTotal: ${searchResults.totalRecords},
             query: "${BieTagLib.escapeJS(query)}",
             serverName: "${grailsApplication.config.grails.serverURL}",
-            bieUrl: "${grailsApplication.config.bie.baseURL}",
+            placesUrl: "${grailsApplication.config.places.baseURL}",
             biocacheUrl: "${grailsApplication.config.biocache.baseURL}",
             biocacheServicesUrl: "${grailsApplication.config.biocacheService.baseURL}",
-            bhlUrl: "${grailsApplication.config.bhl.baseURL}",
             biocacheQueryContext: "${grailsApplication.config?.biocacheService.queryContext ?: ''}",
             geocodeLookupQuerySuffix: "${grailsApplication.config.geocode.querySuffix}",
             maxSpecies: ${grailsApplication.config?.search?.speciesLimit ?: 100},
-            isNBNinns: ${(grailsApplication.config?.nbn?.inns ?: 'false').toBoolean()},
-            recordsFilter: "${recordsFilter}",
-            isNBNni: ${(grailsApplication.config?.nbn?.region ?: '') == 'Northern Ireland'}
+            recordsFilter: "${recordsFilter}"
         }
     </asset:script>
     <g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
@@ -82,7 +79,7 @@
                 <span class="col-sm-9" >
                     <g:if test="${grailsApplication.config?.search?.includeFreeTextFilterOnResults == 'true'}">
                         <form method="get"
-                              action="${grailsApplication.config.bie.baseURL}${grailsApplication.config.bie.searchPath}"
+                              action="${grailsApplication.config.places.baseURL}${grailsApplication.config.places.searchPath}"
                               role="search" class="navbar-form form-group" style="margin-bottom:0"
                               id="freetext-filter-form">
                             <div class="input-group" style="width:100%">
@@ -453,8 +450,9 @@ var SHOW_CONF = {
     collectoryUrl:      "${grailsApplication.config.collectory.baseURL}",
     profileServiceUrl:  "${grailsApplication.config.profileService.baseURL}",
     serverName:         "${grailsApplication.config.grails.serverURL}",
+    placesUrl:          "${grailsApplication.config.places.baseURL}",
     bieUrl:             "${grailsApplication.config.bie.baseURL}",
-    alertsUrl:          "${grailsApplication.config.alerts.baseUrl}",
+    alertsUrl:          "${grailsApplication.config.alerts.baseURL}",
     remoteUser:         "${request.remoteUser ?: ''}",
     noImage100Url:      "${resource(dir: 'images', file: 'noImage100.jpg')}",
     imageDialog:        '${imageViewerType}',
@@ -481,7 +479,7 @@ var MAP_CONF = {
     defaultMapId:               "${grailsApplication.config.map.default.id}",
     defaultMapToken:            "${grailsApplication.config.map.default.token}",
     recordsMapColour:           "${grailsApplication.config.map.records.colour}",
-    mapQueryContext:            "${recordsFilterToggle == 'biocacheService-altQueryContext'? (grailsApplication.config?.biocacheService?.altQueryContext ?: '') : (grailsApplication.config?.biocacheService?.queryContext ?: '')}",
+    mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
     additionalMapFilter:        "${raw(grailsApplication.config?.additionalMapFilter ?: '')}",
     map:                        null,
     mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},
