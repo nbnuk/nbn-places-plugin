@@ -40,7 +40,6 @@
             maxSpecies: ${grailsApplication.config?.search?.speciesLimit ?: 100},
             isNBNinns: ${(grailsApplication.config?.nbn?.inns ?: 'false').toBoolean()},
             recordsFilter: "${recordsFilter}",
-            isCompactLayout: ${compactResults},
             isNBNni: ${(grailsApplication.config?.nbn?.region ?: '') == 'Northern Ireland'}
         }
     </asset:script>
@@ -131,7 +130,7 @@
     <div class="main-content panel panel-body">
         <g:if test="${searchResults.totalRecords}">
             <g:set var="paramsValues" value="${[:]}"/>
-            <g:if test="${!(compactResultsRemoveFacets && compactResults)}">
+
                 <div class="row">
                     <div class="col-sm-3">
 
@@ -236,14 +235,10 @@
 
             </div><!-- refine-box -->
         </div>
-            </g:if>
 
-            <g:if test="${compactResultsRemoveFacets && compactResults}">
-                <div class="col-sm-12">
-            </g:if>
-            <g:else>
+
+
                 <div class="col-sm-9">
-            </g:else>
 
         <g:if test="${idxTypes.contains("TAXON") || (grailsApplication.config.nbn?.alwaysshowdownloadbutton?:'') == 'true'}">
             <div class="download-button pull-right">
@@ -266,7 +261,7 @@
                 <div id="tabs-1" class="tab-content">
                     <g:include controller="tabcomponent" action="results"/>
         </g:if>
-                    <g:if test="${!compactResults}">
+
                       <div class="result-options">
                         <span class="record-cursor-details">Showing <b>${(params.offset ?: 0).toInteger() + 1} - ${Math.min((params.offset ?: 0).toInteger() + (params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)).toInteger(), (searchResults?.totalRecords ?: 0))}</b> of <b>${searchResults?.totalRecords}</b> results</span>
 
@@ -305,80 +300,43 @@
 
 
                         </div><!-- result-options -->
-                    </g:if>
-
-                    <input type="hidden" value="${pageTitle}" name="title"/>
-
-                    <g:if test="${compactResults}">
-                        <g:each var="pageGroup" in="${pageGroups}" status="i">
-                            <div class="facetGroupName" id="heading_${i}">
-                                <a href="#" class="showHidePageGroup" data-name="${i}">
-                                    <span class="caret right-caret"></span>&nbsp;${pageGroup}
-                                </a>
-                            </div>
-                            <div class="facetsGroup" id="group_${i}" style="display:none;">
-                                <ol id="search-results-list" class="search-results-list list-unstyled search-results-list-compact">
-                                <g:each var="result" in="${searchResults.results}">
-                                    <g:set var="grp"><g:if test="${(result[pageGroupBy]?:"") instanceof Collection}">${result[pageGroupBy][0]?:""}</g:if><g:else>${result[pageGroupBy]?:""}</g:else></g:set>
-
-                                    <g:if test="${grp.toLowerCase() == pageGroup.toLowerCase() || (grp == "" && pageGroup == 'Ungrouped')}">
-                                        <li class="search-result search-result-compact clearfix">
-                                        <g:if test="${result.has("idxtype") && result.idxtype == 'TAXON' || true}">
-                                            <g:set var="taxonPageLink">${request.contextPath}/species/${result.guid ?: result.linkIdentifier}</g:set>
-                                            <g:set var="acceptedPageLink">${request.contextPath}/species/${result.acceptedConceptID ?: result.guid ?: result.linkIdentifier}</g:set>
-
-                                            <h3>${result.rank}:
-                                                <a href="${acceptedPageLink}"><bie:formatSciName rankId="${result.rankID}"
-                                                                                             taxonomicStatus="${result.taxonomicStatus}"
-                                                                                             nameFormatted="${result.nameFormatted}"
-                                                                                             nameComplete="${result.nameComplete}"
-                                                                                             name="${result.name}"
-                                                                                             acceptedName="${result.acceptedConceptName}"/></a>
-                                                <g:if test="${result.commonNameSingle}">
-                                                    <span class="commonNameSummary">&nbsp;&ndash;&nbsp;${result.commonNameSingle}</span>
-                                                </g:if>
-                                            </h3>
-                                        </g:if>
-                                        </li>
-                                    </g:if>
-                                </g:each>
-                                </ol>
-                            </div>
-                        </g:each>
-                    </g:if>
-                    <g:else>
-                        <table class="table table-bordered table-striped table-condensed">
-                            <thead style="font-weight:bold">
-                            <tr>
-                                <td>Name</td>
-                                <td>Diocese</td>
-                                <td>Parish</td>
-                                <td>Function</td>
-
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <g:each in="${searchResults.results}" status="i" var="result">
-                                <tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
-
-                                    <td><a href="${request.contextPath}/places/${result.guid}">${result.name}</a></td>
-
-                                    <td>${result.diocese_na_s}</td>
-                                    <td>${result.parish_leg_s}</td>
-                                    <td>${result.function_s}</td>
-                                </tr>
-                            </g:each>
-                            </tbody>
-                        </table>
 
 
-                    <div>
-                        <tb:paginate total="${searchResults?.totalRecords}"
-                             max="${params.rows ?: (grailsApplication.config?.search?.defaultRows?:10)}"
+            <input type="hidden" value="${pageTitle}" name="title"/>
+
+
+            <table class="table table-bordered table-striped table-condensed">
+                <thead style="font-weight:bold">
+                <tr>
+                    <td>Name</td>
+                    <td>Diocese</td>
+                    <td>Parish</td>
+                    <td>Function</td>
+
+                </tr>
+                </thead>
+                <tbody>
+                <g:each in="${searchResults.results}" status="i" var="result">
+                    <tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
+
+                        <td><a href="${request.contextPath}/places/${result.guid}">${result.name}</a></td>
+
+                        <td>${result.diocese_na_s}</td>
+                        <td>${result.parish_leg_s}</td>
+                        <td>${result.function_s}</td>
+                    </tr>
+                </g:each>
+                </tbody>
+            </table>
+
+
+            <div>
+                <tb:paginate total="${searchResults?.totalRecords}"
+                             max="${params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)}"
                              action="search"
-                             params="${[q: params.q, fq: params.fq, dir: (params.dir ?: (grailsApplication.config?.search?.defaultSortOrder?:'desc')), sortField: (params.sortField ?: (grailsApplication.config?.search?.defaultSortField?:'score')), rows: (params.rows ?: (grailsApplication.config?.search?.defaultRows?:10))]}"/>
-                    </div>
-                    </g:else>
+                             params="${[q: params.q, fq: params.fq, dir: (params.dir ?: (grailsApplication.config?.search?.defaultSortOrder ?: 'desc')), sortField: (params.sortField ?: (grailsApplication.config?.search?.defaultSortField ?: 'score')), rows: (params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10))]}"/>
+            </div>
+
 
             <g:if test="${grailsApplication.config?.search?.mapResults == 'true'}">
                 </div>
@@ -541,9 +499,6 @@ var MAP_CONF = {
     presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}"
 };
 
-<g:if test="${!compactResults || !compactResultsRemoveFacets}">
-tagResults("${lsids}".split("%20OR%20"));
-</g:if>
 
 <g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
     loadTheMap(MAP_CONF);

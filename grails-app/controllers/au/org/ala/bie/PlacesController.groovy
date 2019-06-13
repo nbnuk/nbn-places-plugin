@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils
 
 
 /**
- * Species Controller
+ * Places Controller
  *
  * @author "Nick dos Remedios <Nick.dosRemedios@csiro.au>"
  */
@@ -44,7 +44,7 @@ class PlacesController {
     def pageResultsOccsAbsence = 0
     def recordsFilter = ''
 
-    def pageGroups = []
+
 
     def placeStats = {
         if (params.guid) {
@@ -106,18 +106,8 @@ class PlacesController {
         def filterQuery = params.list('fq') // will be a list even with only one value
         def startIndex = params.offset?:0
 
-        def showAsCompact = (grailsApplication.config?.search?.compactResults ?: 'false').toBoolean()
-        if (grailsApplication.config.search?.compactResultsGroupBy?:"" != "") {
-            if ((grailsApplication.config.search?.compactResultsOnlyWhenPageParam ?: 'false').toBoolean() && !(params?.compact ?: 'false').toBoolean()) {
-                showAsCompact = false
-            }
-        }
-        def rows
-        if (showAsCompact) {
-            rows = params.rows ?: (grailsApplication.config?.search?.compactResultsRows ?: 100)
-        } else {
-            rows = params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)
-        }
+
+        def rows = params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)
 
         def sortField = params.sortField?:(grailsApplication.config?.search?.defaultSortField?:"")
         def sortDirection = params.dir?:(grailsApplication.config?.search?.defaultSortOrder?:"desc")
@@ -126,10 +116,7 @@ class PlacesController {
         if (params.dir && !params.sortField) {
             sortField = "score" // default sort (field) of "score" when order is defined on its own
         }
-        if (showAsCompact) {
-            sortField = 'scientificName' //hardcoded
-            sortDirection = 'asc'
-        }
+
         recordsFilter = getRecordsFilter()
 
         def requestObj = new SearchRequestParamsDTO(query, filterQuery, startIndex, rows, sortField, sortDirection)
@@ -182,9 +169,7 @@ class PlacesController {
             render(view: '../error', model: [message: searchResults.error])
         } else {
             setResultStats(searchResults)
-            if (grailsApplication.config.search?.compactResultsGroupBy?:"" != "") {
-                setResultGroups(searchResults, grailsApplication.config.search?.compactResultsGroupBy)
-            }
+
             def jsonSlurper = new JsonSlurper()
             def facetsOnlyShowValuesJson = jsonSlurper.parseText((grailsApplication.config.search?.facetsOnlyShowValues ?: "[]"))
             def tagIfInListsJson = jsonSlurper.parseText((grailsApplication.config.search?.tagIfInLists ?: "[]"))
@@ -218,10 +203,6 @@ class PlacesController {
                     pageResultsOccurrenceRecords: pageResultsOccs,
                     recordsFilterToggle: params.includeRecordsFilter ?: "",
                     recordsFilter: recordsFilter,
-                    compactResults: showAsCompact,
-                    pageGroups: pageGroups,
-                    pageGroupBy: grailsApplication.config?.search?.compactResultsGroupBy ?: '',
-                    compactResultsRemoveFacets: (grailsApplication.config?.search?.compactResultsRemoveFacets ?: 'false').toBoolean(),
                     facetsOnlyShowValues: facetsOnlyShowValuesJson,
                     tagIfInLists: tagIfInListsJson
             ])
@@ -432,28 +413,7 @@ class PlacesController {
 
     }
 
-    def setResultGroups (pageResults, groupField) {
-        pageGroups = []
-        def sr
-        def areOthers = false
-        sr = pageResults?.searchResults
-        if (sr) {
-            sr.results.each { result ->
-                if (result[ groupField ]) {
-                    def grp = result[ groupField ]
-                    if (grp instanceof Collection) {
-                        pageGroups << WordUtils.capitalize(grp[0]) //take first element - alternative is to potentially put same entry into multiple groups
-                    } else {
-                        pageGroups << WordUtils.capitalize(grp)
-                    }
-                } else {
-                    areOthers = true
-                }
-            }
-        }
-        pageGroups = pageGroups.sort().unique()
-        if (areOthers) pageGroups = pageGroups.plus('Ungrouped') //TODO i18n
-    }
+
 
     def occurrences(){
         def title = "INNS species" //TODO

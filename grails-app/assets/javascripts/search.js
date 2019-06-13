@@ -59,7 +59,7 @@ $(document).ready(function() {
         injectBiocacheResultsActual(MAP_CONF.allResultsOccurrenceRecords, SEARCH_CONF.maxSpecies);
         $('#related-searches').removeClass('hide');
     } else {
-        if (!(SEARCH_CONF.isNBNni && SEARCH_CONF.isCompactLayout)) {
+        if (!(SEARCH_CONF.isNBNni)) {
             injectBiocacheResults();
         }
     }
