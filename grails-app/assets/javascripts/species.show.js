@@ -19,10 +19,8 @@ function showSpeciesPage() {
     //load content
     loadOverviewImages();
     loadGalleries();
-    loadExpertDistroMap();
     loadDataProviders();
-    loadIndigenousData();
-    //
+
     ////setup controls
     addAlerts();
 
@@ -120,73 +118,7 @@ function loadDataProviders(){
     });
 }
 
-function loadIndigenousData() {
 
-    if(!SHOW_CONF.profileServiceUrl || SHOW_CONF.profileServiceUrl == ""){
-        return;
-    }
-
-    var url = SHOW_CONF.profileServiceUrl + "/api/v1/profiles?summary=true&tags=IEK&guids=" + SHOW_CONF.guid;
-    $.getJSON(url, function (data) {
-        if (data.total > 0) {
-            $("#indigenous-info-tab").parent().removeClass("hide");
-
-            $.each(data.profiles, function(index, profile) {
-                var panel = $('#indigenous-profile-summary-template').clone();
-                panel.removeClass("hide");
-                panel.attr("id", profile.id);
-
-                var logo = profile.collection.logo || SHOW_CONF.noImage100Url;
-                panel.find(".collection-logo").append("<img src='" + logo + "' alt='" + profile.collection.title + " logo'>");
-                panel.find(".collection-logo-caption").append(profile.collection.title);
-
-
-                panel.find(".profile-name").append(profile.name);
-                panel.find(".collection-name").append("(" + profile.collection.title + ")");
-                var otherNames = "";
-                var summary = "";
-                $.each(profile.attributes, function (index, attribute) {
-                    if (attribute.name) {
-                        otherNames += attribute.text;
-                        if (index < profile.attributes.length - 2) {
-                            otherNames += ", ";
-                        }
-                    }
-                    if (attribute.summary) {
-                        summary = attribute.text;
-                    }
-                });
-                panel.find(".other-names").append(otherNames);
-                panel.find(".summary-text").append(summary);
-                panel.find(".profile-link").append("<a href='" + profile.url + "' title='Click to view the whole profile' target='_blank'>View the full profile</a>");
-
-                if(profile.thumbnailUrl) {
-                    panel.find(".main-image").removeClass("hide");
-
-                    panel.find(".image-embedded").append("<img src='" + profile.thumbnailUrl + "' alt='" + profile.collection.title + " main image'>");
-                }
-
-                if(profile.mainVideo) {
-                    panel.find(".main-video").removeClass("hide");
-                    panel.find(".video-name").append(profile.mainVideo.name);
-                    panel.find(".video-attribution").append(profile.mainVideo.attribution);
-                    panel.find(".video-license").append(profile.mainVideo.license);
-                    panel.find(".video-embedded").append(profile.mainVideo.embeddedVideo);
-                }
-
-                if(profile.mainAudio) {
-                    panel.find(".main-audio").removeClass("hide");
-                    panel.find(".audio-name").append(profile.mainAudio.name);
-                    panel.find(".audio-attribution").append(profile.mainAudio.attribution);
-                    panel.find(".audio-license").append(profile.mainAudio.license);
-                    panel.find(".audio-embedded").append(profile.mainAudio.embeddedAudio);
-                }
-
-                panel.appendTo("#indigenous-info");
-            });
-        }
-    });
-}
 
 /**
  * Trigger loading of the 3 gallery sections
@@ -460,19 +392,6 @@ function cancelSearch(msg) {
     return true;
 }
 
-function loadExpertDistroMap() {
-    var url = SHOW_CONF.layersServiceUrl + "/distribution/map/" + SHOW_CONF.guid + "?callback=?";
-    $.getJSON(url, function(data){
-        if (data.available) {
-            $("#expertDistroDiv img").attr("src", data.url);
-            if (data.dataResourceName && data.dataResourceUrl) {
-                var attr = $('<a>').attr('href', data.dataResourceUrl).text(data.dataResourceName)
-                $("#expertDistroDiv #dataResource").html(attr);
-            }
-            $("#expertDistroDiv").show();
-        }
-    })
-}
 
 function expandImageGallery(btn) {
     if(!$(btn).hasClass('.expand-image-gallery')){

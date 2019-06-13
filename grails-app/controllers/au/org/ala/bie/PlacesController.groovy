@@ -61,7 +61,7 @@ class PlacesController {
 
         def searchResults = []
         try {
-            def googleMapsKey = grailsApplication.config.googleMapsApiKey
+            def googleMapsKey = grailsApplication.config.google?.apiKey
             def url = "https://maps.googleapis.com/maps/api/geocode/json?key=${googleMapsKey}&address=" +
                     URLEncoder.encode(params.q, 'UTF-8')
             def response = new URL(url).text
@@ -116,9 +116,7 @@ class PlacesController {
 
         def requestObj = new SearchRequestParamsDTO(query, filterQuery, startIndex, rows, sortField, sortDirection)
         log.info "SearchRequestParamsDTO = " + requestObj
-        log.info "recordsFilter = " + recordsFilter
-        //def searchResults = bieService.searchBie(requestObj)
-        def searchResults = bieService.searchBieOccFilter(requestObj, recordsFilter, false)
+        def searchResults = bieService.searchBie(requestObj)
         def searchResultsNamesAndRecCounts = bieService.getPlacesAndRecordCounts(searchResults)
 
         def lsids = ""
@@ -254,10 +252,10 @@ class PlacesController {
             def place_cl = layerDetails.fid
             def place_clName = layerDetails.name
 
-            def placeTaxonList = bieService.getTaxonListForPlace(place_cl, place_clName, null, false)
+            def placeTaxonList = bieService.getTaxonListForPlace(place_cl, place_clName)
 
-            def pageResultsOccsPresence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "presence", recordsFilter, true, false)
-            def pageResultsOccsAbsence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "absence", recordsFilter, true, false)
+            def pageResultsOccsPresence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "presence", false)
+            def pageResultsOccsAbsence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "absence", false)
             def allResultsOccs = pageResultsOccsPresence + pageResultsOccsAbsence
             if (pageResultsOccsPresence == null) {
                 pageResultsOccsPresence = -1
@@ -272,11 +270,11 @@ class PlacesController {
             if ((grailsApplication.config?.species?.mapPresenceAndAbsence?:"") == "true") {
                 //have all info needed
             } else {
-                if (grailsApplication.config?.additionalMapFilter == "fq=occurrence_status:present" || grailsApplication.config?.additionalMapFilter == "fq=-occurrence_status:present") {
+                if (grailsApplication.config?.map?.additionalMapFilter == "fq=occurrence_status:present" || grailsApplication.config?.show?.additionalMapFilter == "fq=-occurrence_status:present") {
                     //for these common options don't make *another* web service call
                     allResultsOccsNoMapFilter = allResultsOccs
                 } else {
-                    allResultsOccsNoMapFilter = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "all", recordsFilter, true, true)
+                    allResultsOccsNoMapFilter = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "all", true)
                     if (allResultsOccsNoMapFilter == null) allResultsOccsNoMapFilter = -1
                 }
             }
@@ -380,7 +378,7 @@ class PlacesController {
 
             def requestObj = new SearchRequestParamsDTO(query, filterQuery, 0, rowsMax, sortField, sortDirection)
             log.info "SearchRequestParamsDTO = " + requestObj
-            def searchResults = bieService.searchBieOccFilter(requestObj, recordsFilter, true)
+            def searchResults = bieService.searchBie(requestObj)
 
             sr = searchResults?.searchResults
         } else {

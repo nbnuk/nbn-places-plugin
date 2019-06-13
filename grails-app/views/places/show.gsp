@@ -36,8 +36,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${placeDetails?.name} | ${raw(grailsApplication.config.skin.orgNameLong)}</title>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
-    <g:if test="${grailsApplication.config.google.apikey}">
-    <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apikey}"
+    <g:if test="${grailsApplication.config.google.apiKey}">
+    <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apiKey}"
             type="text/javascript"></script>
 </g:if>
     <g:else>
@@ -258,7 +258,7 @@ var MAP_CONF = {
         shape_filter:               "${cl}:\"${clName}\"",
         centroidLat:                "${centroid[1]}",
         centroidLon:                "${centroid[0]}",
-        defaultShapeZoom:           "${grailsApplication.config.map?.defaultShapeZoom ?: 10}",
+        defaultShapeZoom:           "${grailsApplication.config.map?.default?.shapeZoomLevel ?: 10}",
         biocacheServiceUrl:         "${grailsApplication.config.biocacheService.baseURL}",
         biocacheUrl:                "${grailsApplication.config.biocache.baseURL}",
         allResultsOccurrenceRecords:            ${allResultsOccurrenceRecords},
@@ -266,9 +266,9 @@ var MAP_CONF = {
         pageResultsOccurrenceRecords:           ${pageResultsOccurrenceRecords},
         pageResultsOccurrencePresenceRecords:   ${pageResultsOccurrencePresenceRecords},
         pageResultsOccurrenceAbsenceRecords:    ${pageResultsOccurrenceAbsenceRecords},
-        defaultDecimalLatitude:     ${grailsApplication.config.defaultDecimalLatitude},
-        defaultDecimalLongitude:    ${grailsApplication.config.defaultDecimalLongitude},
-        defaultZoomLevel:           ${grailsApplication.config.defaultZoomLevel},
+        defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude},
+        defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude},
+        defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel},
         mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
         defaultMapUrl:              "${grailsApplication.config.map.default.url}",
         defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
@@ -277,7 +277,7 @@ var MAP_CONF = {
         defaultMapToken:            "${grailsApplication.config.map.default.token}",
         recordsMapColour:           "${grailsApplication.config.map.records.colour}",
         mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
-        additionalMapFilter:        "${raw(grailsApplication.config.additionalMapFilter)}",
+        additionalMapFilter:        "${raw(grailsApplication.config.show?.additionalMapFilter ?: '')}",
         map:                        null,
         mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},
         mapEnvOptions:              "${grailsApplication.config.map.env?.options?:'color:' + (grailsApplication.config.map?.records?.colour?: 'e6704c')+ ';name:circle;size:4;opacity:0.8'}",
@@ -287,7 +287,7 @@ var MAP_CONF = {
         mapLayersLabels:            "${grailsApplication.config.map.layers?.labels?:''}",
         mapLayersColours:           "${grailsApplication.config.map.layers?.colours?:''}",
         spatialWmsUrl:              "${grailsApplication.config.geoserver?.baseURL?:''}",
-        showResultsMap:             ${grailsApplication.config?.species?.mapResults == 'true'},
+        showResultsMap:             ${grailsApplication.config?.show?.mapResults == 'true'},
         mapPresenceAndAbsence:      ${grailsApplication.config?.species?.mapPresenceAndAbsence == 'true'},
         resultsToMap:               "${(grailsApplication.config?.species?.mapPresenceAndAbsence == 'true') ? searchResultsPresence : searchResults}",
         resultsToMapJSON:           null,

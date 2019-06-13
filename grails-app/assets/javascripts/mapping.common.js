@@ -476,7 +476,7 @@ function loadMap(MAP_CONF) {
     MAP_CONF.map.invalidateSize(false);
     if (MAP_CONF.mapType == 'show') {
         if (MAP_CONF.centroidLat < 91 && MAP_CONF.centroidLon < 181) { //real values
-            MAP_CONF.map.setView([MAP_CONF.centroidLat, MAP_CONF.centroidLon],MAP_CONF.defaultShapeZoom);
+            MAP_CONF.map.setView([MAP_CONF.centroidLat, MAP_CONF.centroidLon],MAP_CONF.shapeZoomLevel);
             console.log("zoomed default = " + MAP_CONF.map.getZoom());
         }
     }
@@ -637,7 +637,7 @@ function pointLookup(e) {
 
 
     $.ajax({
-        url: MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + MAP_CONF.removeFqs,
+        url: MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > ''? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) +')' : ''),
         jsonp: "callback",
         dataType: "jsonp",
         timeout: 30000,

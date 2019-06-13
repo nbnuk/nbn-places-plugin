@@ -41,8 +41,8 @@
         }
     </asset:script>
     <g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
-        <g:if test="${grailsApplication.config.google.apikey}">
-            <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apikey}"
+        <g:if test="${grailsApplication.config.google.apiKey}">
+            <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apiKey}"
                     type="text/javascript"></script>
         </g:if>
         <g:else>
@@ -240,7 +240,7 @@
         <g:if test="${idxTypes.contains("TAXON") || (grailsApplication.config.nbn?.alwaysshowdownloadbutton?:'') == 'true'}">
             <div class="download-button pull-right">
                 <g:set var="downloadUrl"
-                       value="${grailsApplication.config.bie.index.url}/download?${request.queryString ?: ''}${((grailsApplication.config.bieService.queryContext?:'.').substring(0,1) != '&') ? "&" : "" }${grailsApplication.config.bieService.queryContext}"/>
+                       value="${grailsApplication.config.bieService.baseURL}/download?${request.queryString ?: ''}${((grailsApplication.config.bieService.queryContext?:'.').substring(0,1) != '&') ? "&" : "" }${grailsApplication.config.bieService.queryContext}"/>
                 <a class="btn btn-default active btn-small" href="${downloadUrl}"
                    title="Download a list of places for your search">
                     <i class="glyphicon glyphicon-download"></i>
@@ -466,9 +466,9 @@ var MAP_CONF = {
     allResultsOccurrenceRecords:            ${allResultsOccurrenceRecords},
     pageResultsOccurrenceRecords:           ${pageResultsOccurrenceRecords},
 
-    defaultDecimalLatitude:     ${grailsApplication.config.defaultDecimalLatitude ?: 0},
-    defaultDecimalLongitude:    ${grailsApplication.config.defaultDecimalLongitude ?: 0},
-    defaultZoomLevel:           ${grailsApplication.config.defaultZoomLevel ?: 5},
+    defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude ?: 0},
+    defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude ?: 0},
+    defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel ?: 5},
     mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
     defaultMapUrl:              "${grailsApplication.config.map.default.url}",
     defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
@@ -477,7 +477,7 @@ var MAP_CONF = {
     defaultMapToken:            "${grailsApplication.config.map.default.token}",
     recordsMapColour:           "${grailsApplication.config.map.records.colour}",
     mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
-    additionalMapFilter:        "${raw(grailsApplication.config?.additionalMapFilter ?: '')}",
+    additionalMapFilter:        "${raw(grailsApplication.config?.show?.additionalMapFilter ?: '')}",
     map:                        null,
     mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},
     mapEnvOptions:              "name:circle;size:4;opacity:0.8",
@@ -494,8 +494,7 @@ var MAP_CONF = {
     presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}"
 };
 
-
-<g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
+<g:if test="${(grailsApplication.config.search?.mapResults == 'true') && (searchResults.totalRecords > 0)}">
     loadTheMap(MAP_CONF);
 </g:if>
 

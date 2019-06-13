@@ -62,7 +62,7 @@
         </div><!-- end col 1 -->
 
         <div class="col-md-6">
-            <g:if test="${grailsApplication.config.species?.mapResults == 'true'}">
+            <g:if test="${grailsApplication.config.show?.mapResults == 'true'}">
             <div class="taxon-map">
                 <h3><span id="occurrenceRecordCount">[counting]</span> records
                     <span id="occurrenceRecordCountAll"></span>
