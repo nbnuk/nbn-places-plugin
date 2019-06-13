@@ -166,7 +166,6 @@ class PlacesController {
 
             def jsonSlurper = new JsonSlurper()
             def facetsOnlyShowValuesJson = jsonSlurper.parseText((grailsApplication.config.search?.facetsOnlyShowValues ?: "[]"))
-            def tagIfInListsJson = jsonSlurper.parseText((grailsApplication.config.search?.tagIfInLists ?: "[]"))
 
             if (searchResults?.searchResults) {
                 searchResults.searchResults.facetResults.each { facetRes ->
@@ -197,8 +196,7 @@ class PlacesController {
                     pageResultsOccurrenceRecords: pageResultsOccs,
                     recordsFilterToggle: params.includeRecordsFilter ?: "",
                     recordsFilter: recordsFilter,
-                    facetsOnlyShowValues: facetsOnlyShowValuesJson,
-                    tagIfInLists: tagIfInListsJson
+                    facetsOnlyShowValues: facetsOnlyShowValuesJson
             ])
         }
     }

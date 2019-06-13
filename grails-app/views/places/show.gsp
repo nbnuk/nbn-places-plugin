@@ -17,7 +17,6 @@
 <g:set var="biocacheUrl" value="${grailsApplication.config.biocache.baseURL}"/>
 <g:set var="bieUrl" value="${grailsApplication.config.bie.baseURL}"/>
 <g:set var="placesUrl" value="${grailsApplication.config.places.baseURL}"/>
-<g:set var="speciesListUrl" value="${grailsApplication.config.speciesList.baseURL}"/>
 <g:set var="spatialPortalUrl" value="${grailsApplication.config.spatial.baseURL}"/>
 <g:set var="collectoryUrl" value="${grailsApplication.config.collectory.baseURL}"/>
 <g:set var="alertsUrl" value="${grailsApplication.config.alerts.baseURL}"/>
@@ -209,7 +208,7 @@
 <asset:script type="text/javascript">
 
 
-    // Global var to pass GSP vars into JS file @TODO replace bhl and trove with literatureSource list
+    // Global var to pass GSP vars into JS file
     var SHOW_CONF = {
         cl:                         "${cl}",
         clName:                     "${clName}",
@@ -229,13 +228,10 @@
         synonymsQuery:      "TODO_syn2",
         preferredImageId:   "TODO_img",
         serverName:         "${grailsApplication.config.grails.serverURL}",
-        speciesListUrl:     "${grailsApplication.config.speciesList.baseURL}",
         bieUrl:             "${grailsApplication.config.bie.baseURL}",
         placesUrl:          "${grailsApplication.config.places.baseURL}",
         alertsUrl:          "${grailsApplication.config.alerts.baseURL}",
         remoteUser:         "${request.remoteUser ?: ''}",
-        eolUrl:             "TODO_eol",
-        eolLanguage:        "${grailsApplication.config.eol.lang}",
         noImage100Url:      "${resource(dir: 'images', file: 'noImage100.jpg')}",
         imageDialog:        '${imageViewerType}',
         likeUrl:            "${createLink(controller: 'imageClient', action: 'likeImage')}",
@@ -252,12 +248,7 @@
         addPreferenceButton: ${imageClient.checkAllowableEditRole()},
         organisationName: "${grailsApplication.config.skin?.orgNameLong}",
 
-        speciesAdditionalHeadlines: "${grailsApplication.config.species?.additionalHeadlines?:''}",
-        speciesAdditionalHeadlinesSpeciesList: "${grailsApplication.config.species?.additionalHeadlinesSpeciesList?:''}",
-        speciesListLinks:   "${grailsApplication.config.species?.listLinks?:''}",
-        nbnRegion:          "${grailsApplication.config.nbn?.region?:"n/a"}",
-
-        troveUrl:           "TODO_trove"
+        speciesAdditionalHeadlines: "${grailsApplication.config.species?.additionalHeadlines?:''}"
 };
 
 var MAP_CONF = {

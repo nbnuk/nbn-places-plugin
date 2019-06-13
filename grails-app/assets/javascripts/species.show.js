@@ -20,8 +20,6 @@ function showSpeciesPage() {
     loadOverviewImages();
     loadGalleries();
     loadExpertDistroMap();
-    loadExternalSources();
-    loadSpeciesLists();
     loadDataProviders();
     loadIndigenousData();
     //
@@ -32,107 +30,7 @@ function showSpeciesPage() {
 
 }
 
-//loads list membership and KVP details under 'Datasets' section, and also adds any headline items to subtitle
-function loadSpeciesLists(){
-    //console.log('### loadSpeciesLists #### ' + SHOW_CONF.speciesListUrl + '/ws/species/' + SHOW_CONF.guid);
-    var listHeadlines = SHOW_CONF.speciesAdditionalHeadlinesSpeciesList.split(","); //TODO: what if bad embedded HTML characters? what if key contains comma?
-    var addedToHeadline = [];
-    $.each(listHeadlines, function (idx, listHeadline) {addedToHeadline[idx] = false;}); //only allow first species list kvp to match a given headline and be included in the headline area
-    //console.log(SHOW_CONF.speciesListUrl + '/ws/species/' + SHOW_CONF.guid + '?callback=?');
 
-    $.getJSON(SHOW_CONF.speciesListUrl + '/ws/species/' + SHOW_CONF.guid + '?callback=?', function( data ) {
-        if (!data) return;
-        var listsDone = [];
-        for(var i = 0; i < data.length; i++) {
-            var specieslist = data[i];
-
-
-            var maxListFields = 10;
-
-            if (SHOW_CONF.speciesListLinks > "") {
-                addNNSSbiosecurityLinks($('<textarea />').html(SHOW_CONF.speciesListLinks).text(), specieslist);
-            }
-            if (specieslist.kvpValues.length > 0) {
-                $.each(specieslist.kvpValues, function (idx, kvpValue) {
-                    //check whether to add to headline for species
-                    $.each(listHeadlines, function (idx, listHeadline) {
-                        if (specieslist.dataResourceUid + ':' + kvpValue.key == listHeadline && value && !addedToHeadline[idx]) { //for when listHeadline=[dataset]:[key] to show key value for the species list
-                            var sppListHeaderHTML = "<h5 class='inline-head'><strong>" + kvpValue.key + ":</strong> ";
-                            sppListHeaderHTML += "<span class='species-headline-" + listHeadline + '-' + kvpValue.key + "'>" + value + "</span>";
-                            sppListHeaderHTML += "</h5>";
-                            $(sppListHeaderHTML).appendTo(".header-inner");
-                            addedToHeadline[idx] = true;
-                        } else if (specieslist.dataResourceUid == listHeadline && !addedToHeadline[idx]) { //for when listHeadline=[dataset] to simply label membership of species list
-                            var sppListHeaderHTML = "<h5 class='inline-head species-headline-" + listHeadline + "'>" + specieslist.list.listName + "</h5>";
-                            $(sppListHeaderHTML).appendTo(".header-inner");
-                            addedToHeadline[idx] = true;
-                        }
-                    });
-                });
-            }
-
-            //add header link to nonnativespecies.org entry if tagged species (INNS specific)
-
-
-            if (specieslist.list.isBIE) {
-                if (listsDone.indexOf(specieslist.dataResourceUid.toString()) != -1) {
-                    continue;
-                }
-                listsDone.push(specieslist.dataResourceUid);
-
-                var $description = $('#descriptionCollapsibleTemplate').clone();
-                $description.css({'display': 'block'});
-                $description.attr('id', '#specieslist-block-' + specieslist.dataResourceUid);
-                $description.addClass('species-list-block');
-                $description.find(".title").html(specieslist.list.listName);
-                var $header = $description.find('.showHidePageGroup');
-                $header.attr('data-name','specieslist-' + specieslist.dataResourceUid);
-                var $details = $description.find('.facetsGroup');
-                $details.attr('id','group_specieslist-' + specieslist.dataResourceUid);
-
-                if (specieslist.kvpValues.length > 0) {
-                    var content = "<table class='table'>";
-                    $.each(specieslist.kvpValues, function (idx, kvpValue) {
-                        if (idx >= maxListFields) {
-                            return false;
-                        }
-                        var value = kvpValue.value;
-                        if(kvpValue.vocabValue){
-                            value = kvpValue.vocabValue;
-                        }
-                        content += "<tr><td>" + (kvpValue.key + "</td><td>" + value + "</td></tr>");
-                    });
-                    content += "</table>";
-                    $description.find(".content").html(content);
-                } else {
-                    $description.find(".content").html("A species list provided by " + specieslist.list.listName);
-                    $.each(listHeadlines, function (idx, listHeadline) {
-                        if (specieslist.dataResourceUid == listHeadline && !addedToHeadline[idx]) { //for when listHeadline=[dataset] to simply label membership of species list
-                            var sppListHeaderHTML = "<h5 class='inline-head species-headline-" + listHeadline + "'>" + specieslist.list.listName;
-                            sppListHeaderHTML += "</h5>";
-                            $(sppListHeaderHTML).appendTo(".header-inner");
-                            addedToHeadline[idx] = true;
-                        }
-                    });
-                }
-
-                $description.find(".source").css({'display':'none'});
-                $description.find(".rights").css({'display':'none'});
-
-                $description.find(".providedBy").attr('href', SHOW_CONF.speciesListUrl + '/speciesListItem/list/' + specieslist.dataResourceUid);
-                $description.find(".providedBy").html(specieslist.list.listName);
-                if (specieslist.list.region == SHOW_CONF.nbnRegion) {
-                    console.log("equal");
-                    var $headerBar = $description.find('.panel-heading');
-                    $headerBar.css({'color':'var(--background-color)'});
-                    $('#listContent').prepend($description);
-                } else {
-                    $description.appendTo('#listContent');
-                }
-            }
-        }
-    });
-}
 
 function addAlerts(){
     // alerts button
@@ -288,11 +186,6 @@ function loadIndigenousData() {
             });
         }
     });
-}
-
-function loadExternalSources(){
-    //load EOL content
-    //console.log('####### Loading EOL content - ' + SHOW_CONF.eolUrl);
 }
 
 /**
@@ -599,52 +492,4 @@ function collapseImageGallery(btn) {
     }
 }
 
-function addNNSSbiosecurityLinks(links, specieslist) {
-    var listOnlineResources = JSON.parse(links);
-    var drID = specieslist.dataResourceUid;
-    $.each(listOnlineResources, function (idx, listOnlineResource) {
-        if (listOnlineResource.specieslist == drID) {
-            //add link under 'Online resources'
-            var onlineResourceURL = (listOnlineResource.url).toLowerCase();
-            var theLink = '';
-            if (onlineResourceURL.startsWith("http:") || onlineResourceURL.startsWith("https:")) {
-                //actual url
-                if (listOnlineResource.openExternal == "true") {
-                    theLink = '<a href="' + listOnlineResource.url + '" target="_new">';
-                } else {
-                    theLink = '<a href="' + listOnlineResource.url + '">';
-                }
-            } else {
-                //is it a kvp value?
-                if (specieslist.kvpValues.length > 0) {
-                    $.each(specieslist.kvpValues, function (idx, kvpValue) {
-                        if (kvpValue.key == listOnlineResource.url) {
-                            theLink = kvpValue.value;
-                            if (theLink.startsWith('<a ')) {
-                                //all we need is the href value
-                                var href = $('<div>').append(theLink).find('a:first').attr('href');
-                                if (listOnlineResource.openExternal == "true") {
-                                    theLink = '<a href="' + href.replace(/[']/g,'"') + '" target="_new">';
-                                } else {
-                                    theLink = '<a href="' + href.replace(/[']/g, '"') + '">';
-                                }
-                            } else {
-                                if (listOnlineResource.openExternal == "true") {
-                                    theLink = '<a href="' + theLink.replace(/[']/g, '"') + '" target="_new">';
-                                } else {
-                                    theLink = '<a href="' + theLink.replace(/[']/g, '"') + '" target="_new">';
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-            var decorateLink = '';
-            if (listOnlineResource.openExternal == "true") {
-                decorateLink = '&nbsp;<img src="/assets/newtab.gif"/>';
-            }
-            $(".panel-resources ul").prepend('<li class="taxon-listlink-custom" id="NNSSbiosecurity_link_' + idx + '">' + theLink + listOnlineResource.label + '</a>' + decorateLink + '</li>');
-        }
-    });
 
-}

@@ -457,10 +457,7 @@ var SHOW_CONF = {
     noImage100Url:      "${resource(dir: 'images', file: 'noImage100.jpg')}",
     imageDialog:        '${imageViewerType}',
     addPreferenceButton: ${imageClient.checkAllowableEditRole()},
-    speciesListUrl:     "${grailsApplication.config.speciesList.baseURL}",
-    tagIfInList:        "${grailsApplication.config.search?.tagIfInList ?: ''}",
-    tagIfInListHTML:    "${grailsApplication.config.search?.tagIfInListHTML ?: ''}",
-    tagIfInLists:       "${grailsApplication.config.search?.tagIfInLists ?: ''}"
+
 };
 
 var MAP_CONF = {
