@@ -536,6 +536,7 @@ var MAP_CONF = {
     showResultsMap:             ${grailsApplication.config?.search?.mapResults == 'true'},
     mapPresenceAndAbsence:      ${grailsApplication.config?.search?.mapPresenceAndAbsence == 'true'},
     resultsToMap:               "${searchResults}",
+    /* resultsNamesAndRecCounts:   "${namesAndRecCounts}", */
     resultsToMapJSON:           null,
     presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}"
 };

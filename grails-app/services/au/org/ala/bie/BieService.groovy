@@ -14,13 +14,14 @@ class BieService {
     //additional filter on occurrence records to get different occurrenceCount values for e.g. occurrence_status:absent records
     //also allows override of biocache.queryContext if occFilter includes the needed filter already
     //def searchBieOccFilter(SearchRequestParamsDTO requestObj, String occFilter, Boolean overrideBiocacheContext) {
+    //TODO: rewrite to strip out extraneous functionality occFilter/biocachecontext
     def searchBieOccFilter(SearchRequestParamsDTO requestObj, occFilter, overrideBiocacheContext) {
 
         def queryUrl = grailsApplication.config.bie.index.url + "/search?" + requestObj.getQueryString() +
                 "&facets=" + grailsApplication.config.facets
         queryUrl += "&q.op=OR"
 
-        //add a query context for BIE - to reduce taxa to a subset
+        //add a query context for BIE - to reduce places to a subset
         if (grailsApplication.config.bieService.queryContext) {
 
             queryUrl = queryUrl + "&" + grailsApplication.config.bieService.queryContext.replaceAll(" ", "%20")
@@ -30,27 +31,10 @@ class BieService {
         //queryUrl = queryUrl.replace("\"","%34").replace("+","%20")
 
         //add a query context for biocache - this will influence record counts
-        if (!overrideBiocacheContext) {
-            if (grailsApplication.config.biocacheService.queryContext) {
-                //watch out for mutually exclusive conditions between queryContext and occFilter, e.g. if queryContext=occurrence_status:present and occFilter=occurrence_stats:absent then will get zero records returned
-                queryUrl = queryUrl + "&bqc=(" + (grailsApplication.config.biocacheService.queryContext).replaceAll(" ", "%20")
-                if (occFilter) {
-                    queryUrl = queryUrl + "%20AND%20" + occFilter.replaceAll(" ", "%20")
-                }
-                queryUrl = queryUrl + ")"
-            } else {
-                if (occFilter) {
-                    queryUrl = queryUrl + "&bqc=(" + occFilter.replaceAll(" ", "%20")
-                }
-            }
-        } else {
-            if (occFilter) {
-                queryUrl = queryUrl + "&bqc=(" + occFilter.replaceAll(" ", "%20") + ")"
-            }
-        }
+        queryUrl = queryUrl + getUrlFqForRecFilter (occFilter, overrideBiocacheContext)
 
         queryUrl = queryUrl.replace("\"","%22")
-        log.info("queryUrlOccFilter = " + queryUrl)
+        log.info("queryUrlBieOccFilter = " + queryUrl)
 
         def json = webService.get(queryUrl)
         JSON.parse(json)
@@ -59,7 +43,7 @@ class BieService {
 
     def getPlacesAndRecordCounts(searchResults) {
         if (!(searchResults?.searchResults?.totalRecords?:0)) {
-            null
+            JSON.parse('[{"fieldResult":"[]"}]');
         } else {
             def resArray = searchResults.searchResults.results
 
@@ -130,7 +114,7 @@ class BieService {
         def layerDetails = getPlaceLayerDetails(guid)
         if (layerDetails) {
             def place_cl = (layerDetails?.fid?:'')
-            def place_clName = (layerDetails?.name?:'').replace('&','%26').replace(' ','%20')
+            def place_clName = java.net.URLEncoder.encode((layerDetails?.name?:''), "UTF-8")
             def jsonRec = webService.get(grailsApplication.config.biocacheService.baseURL + '/occurrences/search?fq=' + place_cl + ':%22' + place_clName + '%22&pageSize=0')
             if (jsonRec) {
                 try {
@@ -155,8 +139,29 @@ class BieService {
         }
     }
 
+    //TODO: change call to factor out call to layers service
+    def getPlaceSpeciesCounts(guid) {
+        def layerDetails = getPlaceLayerDetails(guid)
+        if (layerDetails) {
+            def place_cl = (layerDetails?.fid ?: '')
+            def place_clName = java.net.URLEncoder.encode((layerDetails?.name ?: ''), "UTF-8")
+
+            def jsonSpp = webService.get(grailsApplication.config.biocacheService.baseURL + '/occurrence/facets?facets=lsid&q=' + place_cl + ':%22' + place_clName + '%22&flimit=0')
+            try {
+                def sppInfo = JSON.parse(jsonSpp)
+                '{"guid":"' + guid + '", "placeCl":"' + place_cl + '", "placeClName":"' + layerDetails.name + '", "speciesCount":"' + (sppInfo?.count[0] ?: 0) + '"}'
+            } catch (Exception e) {
+                log.warn "Problem retrieving species count information for place: " + guid
+                '{}'
+            }
+
+        } else {
+            '{}'
+        }
+    }
 
 
+    //TODO: remove
     def getTaxonConcept(guid) {
         if (!guid && guid != "undefined") {
             return null
@@ -171,42 +176,8 @@ class BieService {
         }
     }
 
-    def getClassificationForGuid(guid) {
-        def url = grailsApplication.config.bie.index.url + "/classification/" + guid.replaceAll(/\s+/, '+')
-        def json = webService.getJson(url)
-        log.debug "json type = " + json
-        if (json instanceof JSONObject && json.has("error")) {
-            log.warn "classification request error: " + json.error
-            return [:]
-        } else {
-            log.debug "classification json: " + json
-            return json
-        }
-    }
-
-    def getChildConceptsForGuid(guid) {
-        def url = grailsApplication.config.bie.index.url + "/childConcepts/" + guid.replaceAll(/\s+/, '+')
-
-        if (grailsApplication.config.bieService.queryContext) {
-            url = url + "?" + URLEncoder.encode(grailsApplication.config.bieService.queryContext, "UTF-8")
-        }
-
-        def json = webService.getJson(url).sort() { it.rankID ?: 0 }
-
-        if (json instanceof JSONObject && json.has("error")) {
-            log.warn "child concepts request error: " + json.error
-            return [:]
-        } else {
-            log.debug "child concepts json: " + json
-            return json
-        }
-    }
-
-    def getOccurrenceCountsForGuid(guid, presenceOrAbsence, occFilter, overrideBiocacheContext, overrideAdditionalMapFilter) {
-
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrences/taxaCount?guids=' + guid.replaceAll(/\s+/, '+')
-
-        //add a query context for biocache - this will influence record counts
+    def getUrlFqForRecFilter (occFilter, overrideBiocacheContext) {
+        def url = ""
         if (!overrideBiocacheContext) {
             if (grailsApplication.config.biocacheService?.queryContext) {
                 url = url + "&fq=(" + (grailsApplication.config.biocacheService.queryContext).replaceAll(" ", "%20")
@@ -224,52 +195,54 @@ class BieService {
                 url = url + "&fq=(" + occFilter.replaceAll(" ", "%20") + ")"
             }
         }
+        url
+    }
 
-        if (!overrideAdditionalMapFilter) {
-            if (grailsApplication.config?.additionalMapFilter) {
-                url = url + "&" + grailsApplication.config.additionalMapFilter.replaceAll(" ", "%20")
-            }
-        }
+    def getTaxonListForPlace(cl, clName, occFilter, overrideBiocacheContext) {
 
-        if (presenceOrAbsence == 'presence') {
-            url = url + "&fq=-occurrence_status:absent"
-        } else if (presenceOrAbsence == 'absence') {
-            url = url + "&fq=occurrence_status:absent"
-        }
+        //TODO: need to set reasonable flimit and implement paging?
+
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&flimit=-1&fsort=index&stats=%7B!tag=piv1%20max=true%7Dyear';
+
+        url = url + getUrlFqForRecFilter (occFilter, overrideBiocacheContext)
+
+        log.info("getTaxonListForPlace with stats = " + url);
         def json = webService.get(url)
+        def tryOldWSWithoutStats = false
+        if (!json || json=="{}") {
+            tryOldWSWithoutStats = true
+        }
         try {
-            def response = JSON.parse(json)
-            Iterator<?> keys = response.keys();
-            String key = (String) keys.next()
-            response.get(key)
-        } catch (Exception e) {
-            log.info "Problem retrieving occurrence information for Taxon: " + guid
+            def jsonObj = JSON.parse(json)
+            if (jsonObj instanceof JSONObject && jsonObj.has("error")) {
+                tryOldWSWithoutStats = true
+            }
+            if (tryOldWSWithoutStats) {
+                //try normal query URL without stats
+                url = grailsApplication.config.biocacheService.baseURL + '/occurrence/facets?facets=names_and_lsid&fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&fsort=index&flimit=-1';
+                log.info("getTaxonListForPlace old style = " + url);
+                json = webService.get(url)
+                try {
+                    JSON.parse(json)
+                } catch (Exception e) {
+                    log.info "Problem retrieving taxa list for Place: " + clName
+                    null
+                }
+            } else {
+                jsonObj
+            }
+        } catch (Exception ee) {
+            log.info "Problem retrieving taxa list for Place: " + clName
             null
         }
     }
 
+
     def getOccurrenceCountsForPlace(cl, clName, presenceOrAbsence, occFilter, overrideBiocacheContext, overrideAdditionalMapFilter) {
 
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrences/search?pageSize=0&fq=' + cl + ':"' + clName.replaceAll(/\s+/, '+').replaceAll(/&/, '%26') + '"'
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrences/search?pageSize=0&fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"'
 
-        //add a query context for biocache - this will influence record counts
-        if (!overrideBiocacheContext) {
-            if (grailsApplication.config.biocacheService?.queryContext) {
-                url = url + "&fq=(" + (grailsApplication.config.biocacheService.queryContext).replaceAll(" ", "%20")
-                if (occFilter) {
-                    url = url + "%20AND%20" + occFilter.replaceAll(" ", "%20")
-                }
-                url = url + ")"
-            } else {
-                if (occFilter) {
-                    url = url + "&fq=(" + occFilter.replaceAll(" ", "%20") + ")"
-                }
-            }
-        } else {
-            if (occFilter) {
-                url = url + "&fq=(" + occFilter.replaceAll(" ", "%20") + ")"
-            }
-        }
+        url = url + getUrlFqForRecFilter (occFilter, overrideBiocacheContext)
 
         if (!overrideAdditionalMapFilter) {
             if (grailsApplication.config?.additionalMapFilter) {

@@ -18,6 +18,10 @@ var colours = [/* colorUtil */ "8B0000", "FF0000", "CD5C5C", "E9967A", "8B4513",
     "FFFF66", "9900FF", "00FF99", "333399", "99FFCC", "666600", "33CCFF", "006666", "0000CC", "6600CC", "CCCC99", "FF9999", "99CC66"
 ];
 
+//supports record counts up to ~170 million (as natural log scale)
+var greenColours = [ "CCFFCC", "B3FFB3", "99FF99", "80FF80", "66FF66", "4DFF4D", "33FF33", "1AFF1A", "00FF00", "00E600", "00CC00", "00B300", "009900", "008000", "006600", "004D00", "003300", "001A00" ];
+
+var placeHtmlStyles = "background-color: #[greenColourMatched]; width: 3rem; height: 3rem; display: block; left: -1.5rem; top: -1.5rem; position: relative; border-radius: 3rem 3rem 0; transform: rotate(45deg); border: 1px solid #777;";
 
 L.Icon.Default.imagePath = 'assets/leaflet/images/';
 
@@ -262,34 +266,38 @@ function loadMap(MAP_CONF) {
 
     if (MAP_CONF.mapType == 'search') {
     //search results: show site centroids
-        var siteJson;
+
         //console.log("MAP_CONF.resultsToMapJSON.results.length = " + MAP_CONF.resultsToMapJSON.results.length);
-        //TODO include site record and species counts
         for( var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
             var site = MAP_CONF.resultsToMapJSON.results[i];
-            // RR phase 2 out ***
-            /* var feature = site.centroid.substring("POINT(".length, site.centroid.length-1).split(" "); //TODO this is very hacky WKT extraction
-            var marker = L.marker([feature[1],feature[0]]);
-            marker
-                .addTo(speciesLayers)
-                .bindPopup(site.name); */
 
             var siteLink = "<a href='places/" + site.id + "'>" + site.name + "</a>";
+            var siteStats = "<br/>Records: " + site.recordCount.toString();
+            if (!site.recordCount) siteStats += "<br/>Species: 0";
+            var colIndx = Math.floor(Math.log(site.recordCount + 1));
+            if (colIndx > greenColours.length-1) colIndx = greenColours.length-1;
+            var fillColorScheme = greenColours[colIndx];
+            var placeIcon = L.divIcon({
+                iconAnchor: [0,24],
+                labelAnchor: [-6,0],
+                popupAnchor: [0,-36],
+                html: '<span style="' + placeHtmlStyles.replace('[greenColourMatched]',fillColorScheme) + '"/>'
+            });
             var feature = site.centroid.substring("POINT(".length, site.centroid.length-1).split(" "); //TODO this is very hacky WKT extraction
-            var marker = L.marker([feature[1],feature[0]]);
+            var marker = L.marker([feature[1],feature[0]], {icon: placeIcon});
             marker.properties = {};
             marker.properties.placeGuid = site.id;
+
             marker
                 .addTo(speciesLayers)
-                .bindPopup(siteLink)
+                .bindPopup(siteLink + siteStats)
                 .on('click', function(e) {
                     //console.log(e);
-                    if (e.target._popup._content.endsWith("</a>")) { //has not been populated with stats
+                    if (!(e.target._popup._content.includes("<br/>Species:"))) { //has not been populated with stats
                         var jsonUrl = "place-stats/" + e.target.properties.placeGuid ;
                         $.getJSON(jsonUrl, function(data) {
                             var popup = e.target.getPopup();
                             popup.setContent(e.target._popup._content +
-                                "<br/>Records: " + data.recordCount +
                                 "<br/>Species: " + data.speciesCount);
                         });
                     }

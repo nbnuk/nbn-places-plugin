@@ -48,7 +48,7 @@ class PlacesController {
 
     def placeStats = {
         if (params.guid) {
-            def response = bieService.getPlaceRecordAndSpeciesCounts(params.guid)
+            def response = bieService.getPlaceSpeciesCounts(params.guid)
             def js = new JsonSlurper()
             def results = js.parseText(response)
             JSON.use('deep') {
@@ -142,10 +142,28 @@ class PlacesController {
         def lsids = ""
         def sr = searchResults?.searchResults
 
-        if (sr) {
+        if ((sr?.totalRecords?:0) > 0) {
             sr.results.each { result ->
                 lsids += (lsids != "" ? "%20OR%20" : "") + result.guid
             }
+            //populate record counts
+            if (searchResultsNamesAndRecCounts) {
+                def siteStats = searchResultsNamesAndRecCounts[0]?.fieldResult
+                if (siteStats) {
+                    sr.results.each { result ->
+                        log.info("find name = " + result.name)
+                        def siteStat = siteStats.find { element ->
+                            element.label == result.name
+                        }
+                        if (siteStat) {
+                            result.recordCount = siteStat.count
+                        } else {
+                            result.recordCount = 0
+                        }
+                    }
+                }
+            }
+
         }
 
         // empty search -> search for all records
@@ -187,6 +205,7 @@ class PlacesController {
 
             render(view: 'search', model: [
                     searchResults: searchResults?.searchResults,
+                    namesAndRecCounts: searchResultsNamesAndRecCounts[0]?.fieldResult,
                     facetMap: utilityService.addFacetMap(filterQuery),
                     query: query?.trim(),
                     filterQuery: filterQuery,
@@ -262,6 +281,8 @@ class PlacesController {
             def place_cl = layerDetails.fid
             def place_clName = layerDetails.name
 
+            def placeTaxonList = bieService.getTaxonListForPlace(place_cl, place_clName, null, false)
+
             def pageResultsOccsPresence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "presence", recordsFilter, true, false)
             def pageResultsOccsAbsence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "absence", recordsFilter, true, false)
             def allResultsOccs = pageResultsOccsPresence + pageResultsOccsAbsence
@@ -301,11 +322,12 @@ class PlacesController {
             render(view: 'show', model: [
                     placeDetails: placeDetails.searchResults.results[0],
                     cl: place_cl,
-                    clName: place_clName.replace("'","%27").replace('&','%26'),
+                    clName: java.net.URLEncoder.encode(place_clName, "UTF-8"),
                     centroid: centroid,
                     searchResults: searchResults,
                     searchResultsPresence: searchResultsPresence,
                     searchResultsAbsence: searchResultsAbsence,
+                    taxonList: placeTaxonList,
                     statusRegionMap: utilityService.getStatusRegionCodes(),
                     infoSourceMap:[],
                     textProperties: [],

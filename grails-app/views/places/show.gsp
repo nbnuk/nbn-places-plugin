@@ -15,6 +15,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <g:set var="alaUrl" value="${grailsApplication.config.ala.baseURL}"/>
 <g:set var="biocacheUrl" value="${grailsApplication.config.biocache.baseURL}"/>
+<g:set var="bieUrl" value="${}"/>
 <g:set var="speciesListUrl" value="${grailsApplication.config.speciesList.baseURL}"/>
 <g:set var="spatialPortalUrl" value="${grailsApplication.config.spatial.baseURL}"/>
 <g:set var="collectoryUrl" value="${grailsApplication.config.collectory.baseURL}"/>
@@ -305,7 +306,7 @@ var MAP_CONF = {
         guid:                       "${guid}",
         scientificName:             "${placeDetails.name ?: ''}",
 
-        query:                     "?q=" + "${cl}:\"${clName.replace('&','%26')}\"",
+        query:                     "?q=" + "${cl}:\"${clName}\"",
         queryDisplayString:        "${clName}",
         removeFqs:                 ""
 
