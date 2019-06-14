@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils
  * Places Controller
  *
  * @author "Nick dos Remedios <Nick.dosRemedios@csiro.au>"
+ * @author "Reuben Roberts <r.roberts@nbn.org.uk>"
  */
 class PlacesController {
     // Caused by the grails structure eliminating the // from http://x.y.z type URLs
@@ -36,16 +37,12 @@ class PlacesController {
     def biocacheService
     def authService
 
-    def allResultsGuids = []
-    def allResultsOccs = 0
-    def allResultsOccsNoMapFilter = 0
-    def pageResultsOccs = 0
-    def pageResultsOccsPresence = 0
-    def pageResultsOccsAbsence = 0
     def recordsFilter = ''
 
 
-
+    /*
+    * Get taxon count for a place
+    */
     def placeStats = {
         if (params.guid) {
             def response = bieService.getPlaceSpeciesCounts(params.guid)
@@ -57,6 +54,9 @@ class PlacesController {
         }
     }
 
+    /**
+    * TODO Spatial search for places using geolocation
+     */
     def geoSearch = {
 
         def searchResults = []
@@ -86,6 +86,9 @@ class PlacesController {
         }
     }
 
+    /**
+    * Occurrence filter for records to include when displaying place
+     */
     def getRecordsFilter() {
         //for record filter toggle
         def recordsFilter = grailsApplication.config?.biocacheService?.queryContext?:""
@@ -93,7 +96,7 @@ class PlacesController {
     }
 
     /**
-     * Search page - display search results (featured regions) from the BIE
+     * Search page - display search results (places) from the BIE
      */
     def search = {
         def query = params.q?:"".trim()
@@ -106,8 +109,7 @@ class PlacesController {
 
         def sortField = params.sortField?:(grailsApplication.config?.search?.defaultSortField?:"")
         def sortDirection = params.dir?:(grailsApplication.config?.search?.defaultSortOrder?:"desc")
-        //log.info "SortField= " + sortField
-        //log.info "SortDir= " + sortDirection
+
         if (params.dir && !params.sortField) {
             sortField = "score" // default sort (field) of "score" when order is defined on its own
         }
@@ -115,17 +117,13 @@ class PlacesController {
         recordsFilter = getRecordsFilter()
 
         def requestObj = new SearchRequestParamsDTO(query, filterQuery, startIndex, rows, sortField, sortDirection)
-        log.info "SearchRequestParamsDTO = " + requestObj
+        //log.info "SearchRequestParamsDTO = " + requestObj
         def searchResults = bieService.searchBie(requestObj)
         def searchResultsNamesAndRecCounts = bieService.getPlacesAndRecordCounts(searchResults)
 
-        def lsids = ""
         def sr = searchResults?.searchResults
 
         if ((sr?.totalRecords?:0) > 0) {
-            sr.results.each { result ->
-                lsids += (lsids != "" ? "%20OR%20" : "") + result.guid
-            }
             //populate record counts
             if (searchResultsNamesAndRecCounts) {
                 def siteStats = searchResultsNamesAndRecCounts[0]?.fieldResult
@@ -160,7 +158,6 @@ class PlacesController {
             log.error "Error requesting region concept object: " + searchResults.error
             render(view: '../error', model: [message: searchResults.error])
         } else {
-            setResultStats(searchResults)
 
             def jsonSlurper = new JsonSlurper()
             def facetsOnlyShowValuesJson = jsonSlurper.parseText((grailsApplication.config.search?.facetsOnlyShowValues ?: "[]"))
@@ -181,20 +178,10 @@ class PlacesController {
 
             render(view: 'search', model: [
                     searchResults: searchResults?.searchResults,
-                    namesAndRecCounts: searchResultsNamesAndRecCounts[0]?.fieldResult,
                     facetMap: utilityService.addFacetMap(filterQuery),
                     query: query?.trim(),
                     filterQuery: filterQuery,
-                    idxTypes: utilityService.getIdxtypes(searchResults?.searchResults?.facetResults),
-                    isAustralian: false,
-                    collectionsMap: utilityService.addFqUidMap(filterQuery),
-                    lsids: lsids,
-                    offset: startIndex,
-                    allResultsOccurrenceRecords: allResultsOccs,
-                    pageResultsOccurrenceRecords: pageResultsOccs,
-                    recordsFilterToggle: params.includeRecordsFilter ?: "",
-                    recordsFilter: recordsFilter,
-                    facetsOnlyShowValues: facetsOnlyShowValuesJson
+                    collectionsMap: utilityService.addFqUidMap(filterQuery)
             ])
         }
     }
@@ -204,14 +191,11 @@ class PlacesController {
     }
 
     /**
-     * Species page - display information about the requested taxa
+     * Place page - display information about the requested place
      *
-     * TAXON: a taxon is 'any group or rank in a biological classification in which organisms are related.'
-     * It is also any of the taxonomic units. So basically a taxon is a catch-all term for any of the
-     * classification rankings; i.e. domain, kingdom, phylum, etc.
-     *
-     * TAXON CONCEPT: A taxon concept defines what the taxon means - a series of properties
-     * or details about what we mean when we use the taxon name.
+     * Places are loaded into the BIE database with idxtype REGION or (more usually) REGIONFEATURED
+     * Their details can be retrieved using the bie-index service, e.g. https://species-ws.nbnatlas.org/search?fq=id:8313254
+     * This is due to modifications to bie-index that indexes properties from the shapefile that is loaded into the layers store
      *
      */
     def show = {
@@ -267,7 +251,7 @@ class PlacesController {
             }
             def pageResultsOccs = allResultsOccs
             def allResultsOccsNoMapFilter = 0
-            if ((grailsApplication.config?.species?.mapPresenceAndAbsence?:"") == "true") {
+            if ((grailsApplication.config?.show?.mapPresenceAndAbsence?:"") == "true") {
                 //have all info needed
             } else {
                 if (grailsApplication.config?.map?.additionalMapFilter == "fq=occurrence_status:present" || grailsApplication.config?.show?.additionalMapFilter == "fq=-occurrence_status:present") {
@@ -279,7 +263,7 @@ class PlacesController {
                 }
             }
             def jsonSlurper = new JsonSlurper()
-            //search results JSON object to look like that returned for species search list jsonSlurper.parseText(
+            //search results JSON object to match that returned for list from jsonSlurper.parseText()
             def searchResults = '{ "results": [{"occurrenceCount":"' + allResultsOccs + '", "cl":"' + place_cl + '", "name":"' + place_clName + '", "guid":"' + guid + '", "scientificName":"notused"}] }'
             def searchResultsPresence = '{ "results": [{"occurrenceCount":"' + pageResultsOccsPresence + '", "cl":"' + place_cl + '", "name":"' + place_clName + '", "guid":"' + guid + '", "scientificName":"notused"}] }'
             def searchResultsAbsence = '{ "results": [{"occurrenceCount":"' + pageResultsOccsAbsence + '", "cl":"' + place_cl + '", "name":"' + place_clName + '", "guid":"' + guid + '", "scientificName":"notused"}] }'
@@ -299,13 +283,6 @@ class PlacesController {
                     searchResultsPresence: searchResultsPresence,
                     searchResultsAbsence: searchResultsAbsence,
                     taxonList: placeTaxonList,
-                    statusRegionMap: utilityService.getStatusRegionCodes(),
-                    infoSourceMap:[],
-                    textProperties: [],
-                    isAustralian: false,
-                    isRoleAdmin: false, //authService.userInRole(grailsApplication.config.auth.admin_role),
-                    userName: "",
-                    isReadOnly: grailsApplication.config.ranking.readonly,
                     allResultsOccurrenceRecords: allResultsOccs,
                     allResultsOccurrenceRecordsNoMapFilter: allResultsOccsNoMapFilter,
                     pageResultsOccurrenceRecords: pageResultsOccs,
@@ -320,8 +297,9 @@ class PlacesController {
     }
 
     /**
-     * Display images of species for a given higher taxa.
+     * Display images of species for a given place
      * Note: page is AJAX driven so very little is done here.
+     * TODO: do this one
      */
     def imageSearch = {
         def model = [:]
@@ -330,13 +308,6 @@ class PlacesController {
             model["taxonConcept"] = taxon
         }
         model
-    }
-
-    def soundSearch = {
-        def result = biocacheService.getSoundsForTaxon(params.s)
-        render(contentType: "text/json") {
-            result
-        }
     }
 
     /**
@@ -348,70 +319,6 @@ class PlacesController {
     def logout = {
         session.invalidate()
         redirect(url:"${params.casUrl}?url=${params.appUrl}")
-    }
-
-    /**
-     * Note, 'all results' means up to the config search.speciesLimit value (which may differ from the page size)
-     */
-    def setResultStats (pageResults) {
-        allResultsGuids = []
-        allResultsOccs = 0
-        pageResultsOccs = 0
-
-
-        def sr
-        def rows = params.rows?:(grailsApplication.config?.search?.defaultRows?:10)
-        def rowsMax = grailsApplication.config?.search?.speciesLimit ?: 100
-        if ((pageResults?.searchResults?.totalRecords ?: 0) > rows.toInteger()) { //must load all results
-            // its horrible to call twice, once for single page and once for all results, but that seems to be what we have to do
-            def query = params.q ?: "".trim()
-            if (query == "*") query = ""
-            def filterQuery = params.list('fq') // will be a list even with only one value
-            def recordsFilter = getRecordsFilter()
-
-            def sortField = params.sortField ?: (grailsApplication.config?.search?.defaultSortField ?: "")
-            def sortDirection = params.dir ?: (grailsApplication.config?.search?.defaultSortOrder ?: "desc")
-
-            if (params.dir && !params.sortField) {
-                sortField = "score" // default sort (field) of "score" when order is defined on its own
-            }
-
-            def requestObj = new SearchRequestParamsDTO(query, filterQuery, 0, rowsMax, sortField, sortDirection)
-            log.info "SearchRequestParamsDTO = " + requestObj
-            def searchResults = bieService.searchBie(requestObj)
-
-            sr = searchResults?.searchResults
-        } else {
-            sr = pageResults?.searchResults
-        }
-        if (sr) {
-            sr.results.each { result ->
-                allResultsGuids << result.guid
-                allResultsOccs += result?.occurrenceCount?: 0
-            }
-        }
-        sr = pageResults?.searchResults
-        if (sr) {
-            sr.results.each { result ->
-                pageResultsOccs += result?.occurrenceCount?: 0
-            }
-        }
-
-    }
-
-
-
-    def occurrences(){
-        def title = "TODO: INNS species" //TODO
-        //getAllResults()
-
-        def url = biocacheService.performBatchSearch(allResultsGuids, title, recordsFilter)
-
-        if(url){
-            redirect(url:url)
-        } else {
-            redirect(controller: "species", action: "search") //TODO: need to pass URL filter params to this?
-        }
     }
 
     private regularise(String guid) {

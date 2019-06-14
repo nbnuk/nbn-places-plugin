@@ -34,10 +34,7 @@
             placesUrl: "${grailsApplication.config.places.baseURL}",
             biocacheUrl: "${grailsApplication.config.biocache.baseURL}",
             biocacheServicesUrl: "${grailsApplication.config.biocacheService.baseURL}",
-            biocacheQueryContext: "${grailsApplication.config?.biocacheService.queryContext ?: ''}",
-            geocodeLookupQuerySuffix: "${grailsApplication.config.geocode.querySuffix}",
-            maxSpecies: ${grailsApplication.config?.search?.speciesLimit ?: 100},
-            recordsFilter: "${recordsFilter}"
+            biocacheQueryContext: "${grailsApplication.config?.biocacheService.queryContext ?: ''}"
         }
     </asset:script>
     <g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
@@ -182,7 +179,7 @@
                             <g:if test="${lastElement.label == 'before'}">
                                 <li><g:set var="firstYear"
                                            value="${facetResult.fieldResult?.opt(0)?.label.substring(0, 4)}"/>
-                                    <a href="?${queryParam}${appendQueryParam}&fq=${facetResult.fieldName}:[* TO ${facetResult.fieldResult.opt(0)?.label}]">Before ${firstYear}</a>
+                                    <a href="?${queryParam}&fq=${facetResult.fieldName}:[* TO ${facetResult.fieldResult.opt(0)?.label}]">Before ${firstYear}</a>
                                     (<g:formatNumber number="${lastElement.count}" type="number"/>)
                                 </li>
                             </g:if>
@@ -200,7 +197,7 @@
                                             test="${vs == lastElement}">*</g:if><g:else>${facetResult.fieldResult[vs + 1]?.label}</g:else></g:set>
                                     <g:if test="${facetResult.fieldName?.contains("occurrence_date") && fieldResult.label?.endsWith("Z")}">
                                         <li><g:set var="startYear" value="${fieldResult.label?.substring(0, 4)}"/>
-                                            <a href="?${queryParam}${appendQueryParam}&fq=${facetResult.fieldName}:[${fieldResult.label} TO ${dateRangeTo}]">${startYear} - ${startYear + 10}</a>
+                                            <a href="?${queryParam}&fq=${facetResult.fieldName}:[${fieldResult.label} TO ${dateRangeTo}]">${startYear} - ${startYear + 10}</a>
                                             (<g:formatNumber number="${fieldResult.count}" type="number"/>)</li>
                                     </g:if>
                                     <g:elseif test="${fieldResult.label?.endsWith("before")}"><%-- skip --%></g:elseif>
@@ -237,17 +234,6 @@
 
                 <div class="col-sm-9">
 
-        <g:if test="${idxTypes.contains("TAXON") || (grailsApplication.config.nbn?.alwaysshowdownloadbutton?:'') == 'true'}">
-            <div class="download-button pull-right">
-                <g:set var="downloadUrl"
-                       value="${grailsApplication.config.bieService.baseURL}/download?${request.queryString ?: ''}${((grailsApplication.config.bieService.queryContext?:'.').substring(0,1) != '&') ? "&" : "" }${grailsApplication.config.bieService.queryContext}"/>
-                <a class="btn btn-default active btn-small" href="${downloadUrl}"
-                   title="Download a list of places for your search">
-                    <i class="glyphicon glyphicon-download"></i>
-                    Download
-                </a>
-            </div>
-        </g:if>
         <g:if test="${grailsApplication.config?.search?.mapResults == 'true'}">
             <div id="tabs" class="taxon-tabs">
                 <ul class="nav nav-tabs">
@@ -256,7 +242,7 @@
                 </ul>
 
                 <div id="tabs-1" class="tab-content">
-                    <g:include controller="tabcomponent" action="results"/>
+
         </g:if>
 
                       <div class="result-options">
@@ -338,7 +324,6 @@
             <g:if test="${grailsApplication.config?.search?.mapResults == 'true'}">
                 </div>
                 <div id="tabs-2" class="tab-content">
-                    <g:include controller="tabcomponent" action="map"/>
 
                     <div class="result-options">
                         <span class="record-cursor-details">Showing <b>${(params.offset ?: 0).toInteger() + 1} - ${Math.min((params.offset ?: 0).toInteger() + (params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)).toInteger(), (searchResults?.totalRecords ?: 0))}</b> of <b>${searchResults?.totalRecords}</b> results</span>
@@ -405,12 +390,7 @@
                                     </form>
                                 </div>
                             </div>
-                            <g:if test="${grailsApplication.config.spatial.baseURL}">
-                                <g:set var="mapUrl">${grailsApplication.config.spatial.baseURL}?q=lsid:(${lsids})</g:set>
-                            </g:if>
-                            <g:else>
-                                <g:set var="mapUrl">${biocacheUrl}/occurrences/search?q=lsid:(${lsids})#tab_mapView</g:set>
-                            </g:else>
+
                         </div>
 
                        <div id="paginationTab2">
@@ -463,8 +443,6 @@ var SHOW_CONF = {
 var MAP_CONF = {
     mapType:                    "search",
     biocacheServiceUrl:         "${grailsApplication.config.biocacheService.baseURL}",
-    allResultsOccurrenceRecords:            ${allResultsOccurrenceRecords},
-    pageResultsOccurrenceRecords:           ${pageResultsOccurrenceRecords},
 
     defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude ?: 0},
     defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude ?: 0},
@@ -489,7 +467,6 @@ var MAP_CONF = {
     showResultsMap:             ${grailsApplication.config?.search?.mapResults == 'true'},
     mapPresenceAndAbsence:      ${grailsApplication.config?.search?.mapPresenceAndAbsence == 'true'},
     resultsToMap:               "${searchResults}",
-    /* resultsNamesAndRecCounts:   "${namesAndRecCounts}", */
     resultsToMapJSON:           null,
     presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}"
 };

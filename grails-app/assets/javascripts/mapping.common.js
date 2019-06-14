@@ -170,27 +170,32 @@ function addLegendItem(name, red, green, blue, rgbhex, hiderangemax){
 }
 
 function setMapTitle (MAP_CONF) {
-    //added checks for >= 0 because if -1 then webservice call timed out
-    if( MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-        $('#occurrenceRecordCountAll').html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
-    }
-    if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-        $(".occurrenceRecordCount").html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //species show charts tab
-    }
-    if (MAP_CONF.presenceOrAbsence == 'presence') {
-        if (MAP_CONF.pageResultsOccurrencePresenceRecords >= 0) {
-            $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrencePresenceRecords.toLocaleString() + " presence");
+    if (MAP_CONF.mapType == 'show') {
+        //added checks for >= 0 because if -1 then webservice call timed out
+        if ($("#occurrenceRecordCountAll").length) {
+            if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
+                $('#occurrenceRecordCountAll').html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
+            }
         }
-    } else if (MAP_CONF.presenceOrAbsence == 'absence') {
-        if (MAP_CONF.pageResultsOccurrenceAbsenceRecords >= 0) {
-            $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceAbsenceRecords.toLocaleString() + " absence");
-        }
-    } else { //all records
+
         if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-            $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + "");
+            $(".occurrenceRecordCount").html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //species show charts tab
         }
-        if (MAP_CONF.allResultsOccurrenceRecordsNoMapFilter >= 0) {
-            $('#occurrenceRecordCountAll').html("(" + MAP_CONF.allResultsOccurrenceRecordsNoMapFilter.toLocaleString() + " in total)");
+        if (MAP_CONF.presenceOrAbsence == 'presence') {
+            if (MAP_CONF.pageResultsOccurrencePresenceRecords >= 0) {
+                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrencePresenceRecords.toLocaleString() + " presence");
+            }
+        } else if (MAP_CONF.presenceOrAbsence == 'absence') {
+            if (MAP_CONF.pageResultsOccurrenceAbsenceRecords >= 0) {
+                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceAbsenceRecords.toLocaleString() + " absence");
+            }
+        } else { //all records
+            if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
+                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + "");
+            }
+            if (MAP_CONF.allResultsOccurrenceRecordsNoMapFilter >= 0) {
+                $('#occurrenceRecordCountAll').html("(" + MAP_CONF.allResultsOccurrenceRecordsNoMapFilter.toLocaleString() + " in total)");
+            }
         }
     }
     if (MAP_CONF.mapType == 'search') {

@@ -1,5 +1,5 @@
 //= require ALAChart.js
 //= require Chart.min.js
 //= require slider.js
-//= require bootstrapToggle.js
+//= require bootstrap-toggle.min.js
 //= require bootstrapMultiselect.js
