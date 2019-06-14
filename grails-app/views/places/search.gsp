@@ -452,7 +452,6 @@ var MAP_CONF = {
     defaultMapDomain:           "${grailsApplication.config.map.default.domain}",
     defaultMapId:               "${grailsApplication.config.map.default.id}",
     defaultMapToken:            "${grailsApplication.config.map.default.token}",
-    recordsMapColour:           "${grailsApplication.config.map.records.colour}",
     mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
     additionalMapFilter:        "${raw(grailsApplication.config?.show?.additionalMapFilter ?: '')}",
     map:                        null,

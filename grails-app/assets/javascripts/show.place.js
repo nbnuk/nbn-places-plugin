@@ -175,7 +175,7 @@ function loadOverviewImages(){
     var mapShapeFilterUnencoded = $('<textarea />').html(SHOW_CONF.shape_filter).text();
     var url = SHOW_CONF.biocacheServiceUrl  +
         '/occurrences/search.json?q=' +
-        /* mapShapeFilterUnencoded + */ 'Amanita' +
+        mapShapeFilterUnencoded + /* 'Amanita' + */
         '&fq=multimedia:Image&fq=-assertion_user_id:*&im=true&facet=off&pageSize=5&start=0&callback=?';
     //console.log('Loading images from: ' + url);
 
@@ -275,7 +275,7 @@ function loadGalleryType(category, start) {
     var mapShapeFilterUnencoded = $('<textarea />').html(SHOW_CONF.shape_filter).text();
     var url = SHOW_CONF.biocacheServiceUrl  +
         '/occurrences/search.json?q=' +
-        /* mapShapeFilterUnencoded + */ 'Amanita' +
+        mapShapeFilterUnencoded + /* 'Amanita' + */
         '&fq=multimedia:"Image"&pageSize=' + pageSize +
         '&facet=off&start=' + start + imageCategoryParams[category] + '&im=true&callback=?';
 

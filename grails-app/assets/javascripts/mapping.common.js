@@ -383,7 +383,7 @@ function loadMap(MAP_CONF) {
     });
 
     var defaultBaseLayer = L.tileLayer(MAP_CONF.defaultMapUrl, {
-        attribution: MAP_CONF.defaultMapAttr,
+        attribution: MAP_CONF.mapAttribution,
         subdomains: MAP_CONF.defaultMapDomain,
         mapid: MAP_CONF.defaultMapId,
         token: MAP_CONF.defaultMapToken

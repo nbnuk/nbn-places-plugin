@@ -22,8 +22,7 @@
 <g:set var="alertsUrl" value="${grailsApplication.config.alerts.baseURL}"/>
 <g:set var="guid" value="${placeDetails?.guid ?: ''}"/>
 <g:set var="tabs" value="${grailsApplication.config.show.tabs.split(',')}"/>
-<g:set var="jsonLink" value="TODO_json"/>
-<g:set var="sciNameFormatted" value="${placeDetails?.name ?: 'unknown'}"/>
+<g:set var="placeNameFormatted" value="${placeDetails?.name ?: 'unknown'}"/>
 <g:set var="locale" value="${org.springframework.web.servlet.support.RequestContextUtils.getLocale(request)}"/>
 <g:set bean="authService" var="authService"></g:set>
 <g:set var="imageViewerType" value="${grailsApplication.config.imageViewerType?:'LEAFLET'}"></g:set>
@@ -68,22 +67,13 @@
                 </h5>
 
 
-            <h1>${raw(sciNameFormatted)}</h1>
-            <g:set var="commonNameDisplay" value="TODO_common"/>
-            <g:set var="commonNameSingleDisplay" value=""/>
-            <g:if test="${commonNameSingleDisplay}">
-                <h2>${raw(commonNameSingleDisplay)}</h2>
-            </g:if>
-            <h5 class="inline-head taxon-rank">${placeDetails.parish_nam_s}</h5><!--TODO make configurable -->
-            <h5 class="inline-head name-authority">
-                <strong>Diocese:</strong>
-                <span class="name-authority">${placeDetails.diocese_na_s}</span>
-            </h5>
+            <h1>${raw(placeNameFormatted)}</h1>
+
             <g:if test="${grailsApplication.config.show?.additionalHeadlines}">
                 <g:each var="fieldToDisplay" in="${grailsApplication.config.show.additionalHeadlines.split(",")}">
                     <g:if test='${placeDetails."${fieldToDisplay}"}'>
                         <h5 class="inline-head"><strong><g:message code="facet.${fieldToDisplay}" default="${fieldToDisplay}"/>:</strong>
-                        <span class="species-headline-${fieldToDisplay}">${placeDetails."${fieldToDisplay}"}</span></h5>
+                        <span class="place-headline-${fieldToDisplay}">${placeDetails."${fieldToDisplay}"}</span></h5>
                     </g:if>
                 </g:each>
             </g:if>
@@ -268,7 +258,6 @@ var MAP_CONF = {
         defaultMapDomain:           "${grailsApplication.config.map.default.domain}",
         defaultMapId:               "${grailsApplication.config.map.default.id}",
         defaultMapToken:            "${grailsApplication.config.map.default.token}",
-        recordsMapColour:           "${grailsApplication.config.map.records.colour}",
         mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
         additionalMapFilter:        "${raw(grailsApplication.config.show?.additionalMapFilter ?: '')}",
         map:                        null,
