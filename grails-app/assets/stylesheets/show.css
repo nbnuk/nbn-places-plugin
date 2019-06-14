@@ -1,10 +1,6 @@
 /*
 *= require leaflet.css
-*= require species.css
+*= require place.css
 *= require ekko-lightbox.css
 *= require atlas.css
 */
-
-.map-buttons a.btn-lg {
-    width: 33.3333%;
-}

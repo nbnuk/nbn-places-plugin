@@ -94,14 +94,12 @@ function setPresenceAbsenceToggle(MAP_CONF, searchResultsPresence, searchResults
     $('input[name=toggle]', '#map-pa-switch').change(function() {
         var toggle = this.value;
         if (toggle == 'absence') {
-            /* toggleContainer.style.backgroundColor = '#D74046'; */
             MAP_CONF.resultsToMap = searchResultsAbsence;
             MAP_CONF.presenceOrAbsence = "absence";
             removeMap(MAP_CONF);
             loadTheMap(MAP_CONF);
 
         } else if (toggle == 'presence') {
-            /* toggleContainer.style.backgroundColor = 'dodgerblue'; */
             MAP_CONF.resultsToMap = searchResultsPresence;
             MAP_CONF.presenceOrAbsence = "presence";
             removeMap(MAP_CONF);
@@ -118,7 +116,6 @@ function removeMap(MAP_CONF) {
     }
 }
 
-//not currently used:
 
 var clickCount = 0;
 
@@ -172,14 +169,12 @@ function addLegendItem(name, red, green, blue, rgbhex, hiderangemax){
 function setMapTitle (MAP_CONF) {
     if (MAP_CONF.mapType == 'show') {
         //added checks for >= 0 because if -1 then webservice call timed out
-        if ($("#occurrenceRecordCountAll").length) {
-            if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-                $('#occurrenceRecordCountAll').html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
-            }
+        if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
+            $('#occurrenceRecordCountAll').html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
         }
 
         if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-            $(".occurrenceRecordCount").html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //species show charts tab
+            $(".occurrenceRecordCount").html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //place show charts tab
         }
         if (MAP_CONF.presenceOrAbsence == 'presence') {
             if (MAP_CONF.pageResultsOccurrencePresenceRecords >= 0) {
@@ -198,12 +193,9 @@ function setMapTitle (MAP_CONF) {
             }
         }
     }
-    if (MAP_CONF.mapType == 'search') {
-        $('#speciesCount').html(Object.keys(speciesLayers._layers).length);
-    }
 }
 
-var speciesLayers = new L.LayerGroup();
+var placeLayers = new L.LayerGroup();
 var shapeLayers = new L.LayerGroup();
 
 function fitMapToBounds(MAP_CONF) {
@@ -213,8 +205,7 @@ function fitMapToBounds(MAP_CONF) {
     for (i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
         if (Number(MAP_CONF.resultsToMapJSON.results[i].occurrenceCount) > 0) {
             var mapShapeFilterUnencoded = $('<textarea />').html(MAP_CONF.shape_filter).text();
-            //var jsonUrl = MAP_CONF.biocacheServiceUrl + "/mapping/bounds.json?q=lsid:" + MAP_CONF.resultsToMapJSON.results[i].guid + "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
-            var jsonUrl = MAP_CONF.biocacheServiceUrl + "/mapping/bounds.json?q=" + mapShapeFilterUnencoded /* MAP_CONF.shape_filter */ + "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
+            var jsonUrl = MAP_CONF.biocacheServiceUrl + "/mapping/bounds.json?q=" + mapShapeFilterUnencoded + "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
             if (MAP_CONF.presenceOrAbsence == 'presence') {
                 jsonUrl += "&fq=occurrence_status:present"
             } else if (MAP_CONF.presenceOrAbsence == 'absence') {
@@ -255,7 +246,7 @@ function onMarkerClick(marker, e) {
 
 function loadMap(MAP_CONF) {
 
-    speciesLayers = new L.LayerGroup();
+    placeLayers = new L.LayerGroup();
     shapeLayers = new L.LayerGroup();
 
     var prms = {
@@ -270,16 +261,16 @@ function loadMap(MAP_CONF) {
     var mapContextUnencoded = $('<textarea/>').html(MAP_CONF.mapQueryContext).text(); //to convert e.g. &quot; back to "
 
     if (MAP_CONF.mapType == 'search') {
-    //search results: show site centroids
+    //search results: show place centroids
 
         //console.log("MAP_CONF.resultsToMapJSON.results.length = " + MAP_CONF.resultsToMapJSON.results.length);
         for( var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
-            var site = MAP_CONF.resultsToMapJSON.results[i];
+            var place = MAP_CONF.resultsToMapJSON.results[i];
 
-            var siteLink = "<a href='places/" + site.id + "'>" + site.name + "</a>";
-            var siteStats = "<br/>Records: " + site.recordCount.toString();
-            if (!site.recordCount) siteStats += "<br/>Species: 0";
-            var colIndx = Math.floor(Math.log(site.recordCount + 1));
+            var placeLink = "<a href='places/" + place.id + "'>" + place.name + "</a>";
+            var placeStats = "<br/>Records: " + place.recordCount.toString();
+            if (!place.recordCount) placeStats += "<br/>Species: 0";
+            var colIndx = Math.floor(Math.log(place.recordCount + 1));
             if (colIndx > greenColours.length-1) colIndx = greenColours.length-1;
             var fillColorScheme = greenColours[colIndx];
             var placeIcon = L.divIcon({
@@ -288,14 +279,14 @@ function loadMap(MAP_CONF) {
                 popupAnchor: [0,-36],
                 html: '<span style="' + placeHtmlStyles.replace('[greenColourMatched]',fillColorScheme) + '"/>'
             });
-            var feature = site.centroid.substring("POINT(".length, site.centroid.length-1).split(" "); //TODO this is very hacky WKT extraction
+            var feature = place.centroid.substring("POINT(".length, place.centroid.length-1).split(" "); //TODO this is very hacky WKT extraction
             var marker = L.marker([feature[1],feature[0]], {icon: placeIcon});
             marker.properties = {};
-            marker.properties.placeGuid = site.id;
+            marker.properties.placeGuid = place.id;
 
             marker
-                .addTo(speciesLayers)
-                .bindPopup(siteLink + siteStats)
+                .addTo(placeLayers)
+                .bindPopup(placeLink + placeStats)
                 .on('click', function(e) {
                     //console.log(e);
                     if (!(e.target._popup._content.includes("<br/>Species:"))) { //has not been populated with stats
@@ -309,7 +300,7 @@ function loadMap(MAP_CONF) {
                 });
         }
     } else if (MAP_CONF.mapType == 'show') {
-    //single species map with possible criteria-based or colormode themeing
+    //single place map with possible criteria-based or colormode themeing
 
         var shapeLayer = L.tileLayer.wms(MAP_CONF.spatialWmsUrl + '/ALA/wms?', {
             layers: 'ALA:Objects',
@@ -329,7 +320,7 @@ function loadMap(MAP_CONF) {
             fqsArr = MAP_CONF.mapLayersFqs.split("|");
             coloursArr = MAP_CONF.mapLayersColours.split("|");
             var prmsLayer = [];
-            var taxonLayer = [];
+            var placeLayer = [];
             var htmlEntityDecoder = document.createElement('textarea');
             for (i = 0; i < fqsArr.length; i++) {
                 prmsLayer[i] = $.extend({}, prms);
@@ -337,10 +328,7 @@ function loadMap(MAP_CONF) {
                 htmlEntityDecoder.innerHTML = fqsArr[i];
 
                 var shapeFilterDecoded = $('<textarea/>').html(MAP_CONF.shape_filter).text();
-                /* var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=lsid:" +
-                    MAP_CONF.guid + "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '') +
-                    "&fq=" + htmlEntityDecoder.value; */
-                var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded + /* MAP_CONF.shape_filter + */
+                var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded +
                     "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '') +
                     "&fq=" + htmlEntityDecoder.value;
                 if (MAP_CONF.presenceOrAbsence == 'presence') {
@@ -349,21 +337,21 @@ function loadMap(MAP_CONF) {
                     url += "&fq=-occurrence_status:present"
                 }
                 //console.log("Mapping records: " + url);
-                taxonLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
-                taxonLayer[i].addTo(speciesLayers);
+                placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
+                placeLayer[i].addTo(placeLayers);
             }
         } else {
             prms["ENV"] = MAP_CONF.mapEnvOptions;
             var shapeFilterDecoded = $('<textarea/>').html(MAP_CONF.shape_filter).text();
-            var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded + /* MAP_CONF.shape_filter + */
-                /* lsid: MAP_CONF.guid + */ "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
+            var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded +
+                "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
             if (MAP_CONF.presenceOrAbsence == 'presence') {
                 url += "&fq=occurrence_status:present"
             } else if (MAP_CONF.presenceOrAbsence == 'absence') {
                 url += "&fq=-occurrence_status:present"
             }
-            var taxonLayer = L.tileLayer.wms(url, prms);
-            taxonLayer.addTo(speciesLayers);
+            var placeLayer = L.tileLayer.wms(url, prms);
+            placeLayer.addTo(placeLayers);
         }
 
 
@@ -390,7 +378,7 @@ function loadMap(MAP_CONF) {
     MAP_CONF.map = L.map('leafletMap', {
         center: [MAP_CONF.defaultDecimalLatitude, MAP_CONF.defaultDecimalLongitude],
         zoom: MAP_CONF.defaultZoomLevel,
-        layers: [speciesLayers, shapeLayers],
+        layers: [placeLayers, shapeLayers],
         scrollWheelZoom: false
     });
 
@@ -404,7 +392,6 @@ function loadMap(MAP_CONF) {
     defaultBaseLayer.addTo(MAP_CONF.map);
 
     var baseLayers = {
-        /* "Base layer": defaultBaseLayer */
         "Minimal" : defaultBaseLayer,
         "Road" :  new L.Google('ROADMAP'),
         "Terrain" : new L.Google('TERRAIN'),
@@ -415,21 +402,21 @@ function loadMap(MAP_CONF) {
 
     if (MAP_CONF.mapType == 'search') {
 
-        //console.log("speciesLayers:");
-        //console.log(speciesLayers);
-        overlays['sites'] = speciesLayers;
+        //console.log("placeLayers:");
+        //console.log(placeLayers);
+        overlays['places'] = placeLayers;
         L.control.layers(baseLayers, overlays).addTo(MAP_CONF.map);
     } else if (MAP_CONF.mapType == 'show') {
-        var sciName = MAP_CONF.scientificName;
+        var placeName = MAP_CONF.placeName;
         overlays[MAP_CONF.clName] = shapeLayer;
         if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
             labelsArr = MAP_CONF.mapLayersLabels.split("|");
-            for (i = 0; i < taxonLayer.length; i++) {
-                overlays[sciName + ": " + labelsArr[i]] = taxonLayer[i];
+            for (i = 0; i < placeLayer.length; i++) {
+                overlays[placeName + ": " + labelsArr[i]] = placeLayer[i];
             }
             L.control.layers(baseLayers, overlays).addTo(MAP_CONF.map);
         } else {
-            overlays[sciName] = taxonLayer;
+            overlays[placeName] = placeLayer;
             L.control.layers(baseLayers, overlays).addTo(MAP_CONF.map);
         }
     }
@@ -499,11 +486,6 @@ function loadMap(MAP_CONF) {
             );
 
 
-        /* RR *** for (i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
-            if (Number(MAP_CONF.resultsToMapJSON.results[i].occurrenceCount) > 0) {
-                addLegendItem(MAP_CONF.resultsToMapJSON.results[i].scientificName, 0, 0, 0, colours[i], false);
-            }
-        } */
         addLegendItem("Places", 0, 0, 0, colours[0], false);
 
     } else if (MAP_CONF.mapType == 'show') {
@@ -787,17 +769,6 @@ function formatPopupHtml(record) {
     return displayHtml;
 }
 
-function getRecordInfo(){
-    // http://biocache.ala.org.au/ws/occurrences/c00c2f6a-3ae8-4e82-ade4-fc0220529032
-    //console.log("MAP_CONF.query", MAP_CONF.query);
-    $.ajax({
-        url: "${grailsApplication.config.biocacheService.baseURL}/occurrences/info" + MAP_CONF.query,
-        jsonp: "callback",
-        dataType: "jsonp",
-        success: function(response) {
-        }
-    });
-}
 
 /**
  * Format the display of a scientific name.

@@ -24,7 +24,6 @@
 <g:set var="tabs" value="${grailsApplication.config.show.tabs.split(',')}"/>
 <g:set var="jsonLink" value="TODO_json"/>
 <g:set var="sciNameFormatted" value="${placeDetails?.name ?: 'unknown'}"/>
-<g:set var="synonymsQuery" value="TODO_synonym"/>
 <g:set var="locale" value="${org.springframework.web.servlet.support.RequestContextUtils.getLocale(request)}"/>
 <g:set bean="authService" var="authService"></g:set>
 <g:set var="imageViewerType" value="${grailsApplication.config.imageViewerType?:'LEAFLET'}"></g:set>
@@ -80,8 +79,8 @@
                 <strong>Diocese:</strong>
                 <span class="name-authority">${placeDetails.diocese_na_s}</span>
             </h5>
-            <g:if test="${grailsApplication.config.species?.additionalHeadlines}">
-                <g:each var="fieldToDisplay" in="${grailsApplication.config.species.additionalHeadlines.split(",")}">
+            <g:if test="${grailsApplication.config.show?.additionalHeadlines}">
+                <g:each var="fieldToDisplay" in="${grailsApplication.config.show.additionalHeadlines.split(",")}">
                     <g:if test='${placeDetails."${fieldToDisplay}"}'>
                         <h5 class="inline-head"><strong><g:message code="facet.${fieldToDisplay}" default="${fieldToDisplay}"/>:</strong>
                         <span class="species-headline-${fieldToDisplay}">${placeDetails."${fieldToDisplay}"}</span></h5>
@@ -92,7 +91,7 @@
     </header>
 
     <div id="main-content" class="main-content panel panel-body">
-        <div class="taxon-tabs">
+        <div class="place-tabs">
             <ul class="nav nav-tabs">
                 <g:each in="${tabs}" status="ts" var="tab">
                     <li class="${ts == 0 ? 'active' : ''}"><a href="#${tab}" data-toggle="tab"><g:message
@@ -219,13 +218,9 @@
         biocacheQueryContext: "${grailsApplication.config.biocacheService?.queryContext?:""}",
         layersServiceUrl:   "${grailsApplication.config.layersService.baseURL}",
         collectoryUrl:      "${grailsApplication.config.collectory.baseURL}",
-        profileServiceUrl:  "${grailsApplication.config.profileService.baseURL}",
         imageServiceBaseUrl:"${grailsApplication.config.image.baseURL}",
         guid:               "${guid}",
-        scientificName:     "${placeDetails?.name ?: ''}",
-        rankString:         "TODO_rankstr",
-        taxonRankID:        "TODO_rankid",
-        synonymsQuery:      "TODO_syn2",
+        placeName:          "${placeDetails?.name ?: ''}",
         preferredImageId:   "TODO_img",
         serverName:         "${grailsApplication.config.grails.serverURL}",
         bieUrl:             "${grailsApplication.config.bie.baseURL}",
@@ -246,9 +241,7 @@
         getPreferredSpeciesListUrl: "${grailsApplication.config.speciesList.baseURL}",
         druid: "${grailsApplication.config.speciesList.preferredSpeciesListDruid}",
         addPreferenceButton: ${imageClient.checkAllowableEditRole()},
-        organisationName: "${grailsApplication.config.skin?.orgNameLong}",
-
-        speciesAdditionalHeadlines: "${grailsApplication.config.species?.additionalHeadlines?:''}"
+        organisationName: "${grailsApplication.config.skin?.orgNameLong}"
 };
 
 var MAP_CONF = {
@@ -288,24 +281,21 @@ var MAP_CONF = {
         mapLayersColours:           "${grailsApplication.config.map.layers?.colours?:''}",
         spatialWmsUrl:              "${grailsApplication.config.geoserver?.baseURL?:''}",
         showResultsMap:             ${grailsApplication.config?.show?.mapResults == 'true'},
-        mapPresenceAndAbsence:      ${grailsApplication.config?.species?.mapPresenceAndAbsence == 'true'},
-        resultsToMap:               "${(grailsApplication.config?.species?.mapPresenceAndAbsence == 'true') ? searchResultsPresence : searchResults}",
+        mapPresenceAndAbsence:      ${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'},
+        resultsToMap:               "${(grailsApplication.config?.show?.mapPresenceAndAbsence == 'true') ? searchResultsPresence : searchResults}",
         resultsToMapJSON:           null,
-        presenceOrAbsence:          "${(grailsApplication.config?.species?.mapPresenceAndAbsence == 'true') ? "presence" : ""}",
+        presenceOrAbsence:          "${(grailsApplication.config?.show?.mapPresenceAndAbsence == 'true') ? "presence" : ""}",
         guid:                       "${guid}",
-        scientificName:             "${placeDetails.name ?: ''}",
-
         query:                     "?q=" + "${cl}:\"${clName}\"",
         queryDisplayString:        "${clName}",
         removeFqs:                 ""
-
 }
 
 
 
 $(function(){
-    showSpeciesPage();
-    <g:if test="${grailsApplication.config?.species?.mapPresenceAndAbsence == 'true'}">
+    showPlacePage();
+    <g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
         initialPresenceAbsenceMap(MAP_CONF, "${searchResultsPresence}", "${searchResultsAbsence}");
     </g:if>
     loadTheMap(MAP_CONF)
@@ -327,7 +317,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     }
 });
 
-<g:if test="${grailsApplication.config?.species?.mapPresenceAndAbsence == 'true'}">
+<g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
     setPresenceAbsenceToggle(MAP_CONF, "${searchResultsPresence}", "${searchResultsAbsence}");
 </g:if>
 

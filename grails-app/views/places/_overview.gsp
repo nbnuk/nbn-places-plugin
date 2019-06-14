@@ -63,10 +63,10 @@
 
         <div class="col-md-6">
             <g:if test="${grailsApplication.config.show?.mapResults == 'true'}">
-            <div class="taxon-map">
+            <div class="place-map">
                 <h3><span id="occurrenceRecordCount">[counting]</span> records
                     <span id="occurrenceRecordCountAll"></span>
-                    <g:if test="${grailsApplication.config?.species?.mapPresenceAndAbsence == 'true'}">
+                    <g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
                         <span class="map-pa-container">
                             <div id="map-pa-switch" class="map-pa-switch">
                                 <input type="radio" class="map-pa-switch-input" name="toggle" value="presence" id="map-pa-presence" checked>

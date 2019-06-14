@@ -158,7 +158,7 @@ class BieService {
 
         url = url + getUrlFqForRecFilter()
 
-        log.info("getTaxonListForPlace with stats = " + url);
+        //log.info("getTaxonListForPlace with stats = " + url);
         def json = webService.get(url)
         def tryOldWSWithoutStats = false
         if (!json || json=="{}") {
@@ -173,7 +173,7 @@ class BieService {
                 //try normal query URL without stats
                 url = grailsApplication.config.biocacheService.baseURL + '/occurrence/facets?facets=names_and_lsid&fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&fsort=index&flimit=-1';
                 url = url + getUrlFqForRecFilter()
-                log.info("getTaxonListForPlace old style = " + url);
+                //log.info("getTaxonListForPlace old style = " + url);
                 json = webService.get(url)
                 try {
                     JSON.parse(json)

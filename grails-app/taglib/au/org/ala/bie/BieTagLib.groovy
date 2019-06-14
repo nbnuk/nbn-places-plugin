@@ -12,51 +12,6 @@ class BieTagLib {
 
     static languages = null      // Lazy iniitalisation
 
-    /**
-     * Format a scientific name with appropriate italics depending on rank
-     *
-     * @attr nameFormatted OPTIONAL The HTML formatted scientific name
-     * @attr nameComplete OPTIONAL The complete, unformatted scientific name
-     * @attr acceptedName OPTIONAL The accepted name
-     * @attr name REQUIRED the scientific name
-     * @attr rankId REQUIRED The rank ID
-     * @attr taxonomicStatus OPTIONAL The taxonomic status (Use "name" for a plain name and "synonym" for a plain synonym with accepted name)
-     */
-    def formatSciName = { attrs ->
-        def nameFormatted = attrs.nameFormatted
-        def rankId = attrs.rankId ?: 0
-        def name = attrs.nameComplete ?: attrs.name
-        def rank = cssRank(rankId)
-        def accepted = attrs.acceptedName
-        def taxonomicStatus = attrs.taxonomicStatus
-        def parsed = { n, r, incAuthor ->
-            PhraseNameParser pnp = new PhraseNameParser()
-            try {
-                def pn = pnp.parse(n) // attempt to parse phrase name
-                log.debug "format name = ${n} || canonicalNameWithMarker = ${pn.canonicalNameWithMarker()} || incAuthor = ${incAuthor}"
-                def author = incAuthor ? " <span class=\"author\">${pn.authorshipComplete()}</span>" : ""
-                n = "<span class=\"scientific-name rank-${r}\"><span class=\"name\">${pn.canonicalNameWithMarker()}</span>${author}</span>"
-            } catch (Exception ex) {
-                log.warn "Error parsing name (${n}): ${ex}", ex
-            }
-            n
-        }
-        if (!taxonomicStatus)
-            taxonomicStatus = accepted ? "synonym" : "name"
-        def format = message(code: "taxonomicStatus.${taxonomicStatus}.format", default: "<span class=\"taxon-name\">{0}<span>")
-        if (!nameFormatted) {
-            def output = "<span class=\"scientific-name rank-${rank}\"><span class=\"name\">${name}</span></span>"
-            if (rankId >= 6000)
-                output = parsed(name, rank, true)
-            nameFormatted = output
-        }
-        if (accepted) {
-            accepted = parsed(accepted, rank, false)
-        }
-        out << MessageFormat.format(format, nameFormatted, accepted)
-    }
-
-
 
     /**
      * Output the colour name for a given conservationstatus
@@ -235,7 +190,7 @@ class BieTagLib {
         if (rankId <= 4400)
             return "order"
         if (rankId <= 5700)
-            return "famnily"
+            return "family"
         if (rankId < 7000)
             return "genus"
         if (rankId < 8000)

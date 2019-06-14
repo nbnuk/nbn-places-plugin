@@ -54,8 +54,6 @@ $(document).ready(function() {
         reloadWithParam('rows',val, 'tabs-2');
     });
 
-    // AJAX search results
-    injectBiocacheResults();
 
     fixTabTwoPaginationLinks();
 
@@ -91,7 +89,7 @@ function removeFacet(facetIdx) {
     var q = $.getQueryParam('q') ? $.getQueryParam('q') : SEARCH_CONF.query ; //$.query.get('q')[0];
     var fqList = $.getQueryParam('fq'); //$.query.get('fq');
 
-    console.log('Remove facet.,...');
+    console.log('Remove facet...');
     console.log(facetIdx);
     console.log(fqList);
 
@@ -201,39 +199,6 @@ function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function injectBiocacheResults() {
-    var queryToUse = (SEARCH_CONF.query == "" || SEARCH_CONF.query == "*" ? "*:*" : SEARCH_CONF.query);
-    var biocacheContextUnencoded = $('<textarea />').html(SEARCH_CONF.biocacheQueryContext).text(); //to convert e.g. &quot; back to "
-    var url = SEARCH_CONF.biocacheServicesUrl + "/occurrences/search.json?q=" + queryToUse + "&start=0&pageSize=0&facet=off&qc=" + biocacheContextUnencoded;
-    console.log("url_biocache: " + url);
-    $.ajax({
-        url: url,
-        dataType: 'jsonp',
-        success:  function(data) {
-            var maxItems = parseInt(data.totalRecords, 10);
-            var url = SEARCH_CONF.biocacheUrl + "/occurrences/search?q=" + queryToUse;
-            var html = "<li data-count=\"" + maxItems + "\"><a href=\"" + url + "\" id=\"biocacheSearchLink\">Occurrence records</a> (" + numberWithCommas(maxItems) + ")</li>";
-            insertSearchLinks(html);
-        }
-    });
-}
-
-function injectBiocacheSearch(lsids, recsTot) {
-    var biocacheContextUnencoded = $('<textarea />').html(SEARCH_CONF.biocacheQueryContext).text(); //to convert e.g. &quot; back to "
-    var url = SEARCH_CONF.biocacheUrl + "/occurrences/search?q=lsid:(" + lsids + ")&qc=" + biocacheContextUnencoded;
-    var html = "<li data-count=\"" + recsTot + "\"><a href=\"" + url + "\" id=\"biocacheSearchLink\">Occurrence records</a> (" + numberWithCommas(recsTot) + ")</li>";
-    insertSearchLinks(html);
-}
-
-function insertSearchLinks(html) {
-    // add content
-    $("#related-searches ul").append(html);
-    // sort by count
-    $('#related-searches ul li').sortElements(function(a, b){
-        return $(a).data("count") < $(b).data("count") ? 1 : -1;
-    });
-    $('#related-searches').removeClass('hide');
-}
 
 //= require leaflet.js
 

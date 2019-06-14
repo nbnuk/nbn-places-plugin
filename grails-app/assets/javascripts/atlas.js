@@ -7,8 +7,8 @@ $(function() {
 
     // Tabs init
     var hash = window.location.hash;
-    hash && $(".taxon-tabs a[href='" + hash + "']").tab("show");
-    $(".taxon-tabs a").click(function (e) {
+    hash && $(".place-tabs a[href='" + hash + "']").tab("show");
+    $(".place-tabs a").click(function (e) {
         window.location.hash = this.hash;
     });
 
@@ -17,7 +17,7 @@ $(function() {
         e.preventDefault();
         window.location.hash = this.hash;
         var tabID = $(this).attr("href");
-        $(".taxon-tabs a[href='" + tabID + "']").tab("show");
+        $(".place-tabs a[href='" + tabID + "']").tab("show");
     })
 
     // Lightbox
@@ -39,7 +39,7 @@ $(function() {
 
     // show image only after modal dialog is shown. otherwise, image position will be off the viewing area.
     $('#imageDialog').on('shown.bs.modal', function () {
-        imgvwr.viewImage($("#viewerContainerId"), imageId, SHOW_CONF.scientificName, SHOW_CONF.guid, {
+        imgvwr.viewImage($("#viewerContainerId"), imageId, 'TODO_scientificName', SHOW_CONF.guid, {
             imageServiceBaseUrl: SHOW_CONF.imageServiceBaseUrl,
             addSubImageToggle: false,
             addCalibration: false,
@@ -55,7 +55,7 @@ $(function() {
             dislikeUrl: SHOW_CONF.dislikeUrl + '?id=' + imageId,
             userRatingUrl: SHOW_CONF.userRatingUrl + '?id=' + imageId,
             userRatingHelpText: SHOW_CONF.userRatingHelpText.replace('RECORD_URL', recordUrl),
-            savePreferredSpeciesListUrl: SHOW_CONF.savePreferredSpeciesListUrl + '?id=' + imageId + '&scientificName=' + SHOW_CONF.scientificName,
+            savePreferredSpeciesListUrl: SHOW_CONF.savePreferredSpeciesListUrl + '?id=' + imageId,
             getPreferredSpeciesListUrl: SHOW_CONF.getPreferredSpeciesListUrl,
             druid: SHOW_CONF.druid
         });

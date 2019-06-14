@@ -235,7 +235,7 @@
                 <div class="col-sm-9">
 
         <g:if test="${grailsApplication.config?.search?.mapResults == 'true'}">
-            <div id="tabs" class="taxon-tabs">
+            <div id="tabs" class="place-tabs">
                 <ul class="nav nav-tabs">
                     <li class="active"><a id="t1" href="#tabs-1" data-toggle="tab">Results</a></li>
                     <li><a id="t2" href="#tabs-2" data-toggle="tab">Map</a></li>
@@ -363,7 +363,7 @@
 
                     <!-- </div> result-options -->
 
-                        <div class="taxon-map">
+                        <div class="place-map">
 
                             <g:if test="${message(code: 'overview.map.button.records.map.subtitle', default: '')}">
                                 <p>${g.message(code: 'overview.map.button.records.map.subtitle')}</p>
@@ -428,7 +428,6 @@ var SHOW_CONF = {
     biocacheServiceUrl: "${grailsApplication.config.biocacheService.baseURL}",
     layersServiceUrl:   "${grailsApplication.config.layersService.baseURL}",
     collectoryUrl:      "${grailsApplication.config.collectory.baseURL}",
-    profileServiceUrl:  "${grailsApplication.config.profileService.baseURL}",
     serverName:         "${grailsApplication.config.grails.serverURL}",
     placesUrl:          "${grailsApplication.config.places.baseURL}",
     bieUrl:             "${grailsApplication.config.bie.baseURL}",

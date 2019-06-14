@@ -12,9 +12,9 @@
  * implied. See the License for the specific language governing
  * rights and limitations under the License.
  */
-function showSpeciesPage() {
+function showPlacePage() {
 
-    //console.log("Starting show species page");
+    //console.log("Starting show place page");
 
     //load content
     loadOverviewImages();
@@ -23,8 +23,6 @@ function showSpeciesPage() {
 
     ////setup controls
     addAlerts();
-
-
 
 }
 
@@ -122,6 +120,7 @@ function loadDataProviders(){
 
 /**
  * Trigger loading of the 3 gallery sections
+ * TODO: this may need to change
  */
 function loadGalleries() {
     //console.log('loading galleries');
@@ -148,7 +147,7 @@ function escapeHtml(string) {
 }
 
 /**
- * Load overview images on the species page. This is separate from the main galleries.
+ * Load overview images on the place page. This is separate from the main galleries.
  */
 function loadOverviewImages(){
     var hasPreferredImage = false; // Could get a race condition where no main image gets loaded due callbacks
@@ -176,7 +175,7 @@ function loadOverviewImages(){
     var mapShapeFilterUnencoded = $('<textarea />').html(SHOW_CONF.shape_filter).text();
     var url = SHOW_CONF.biocacheServiceUrl  +
         '/occurrences/search.json?q=' +
-        mapShapeFilterUnencoded + /* 'Amanita' + */
+        /* mapShapeFilterUnencoded + */ 'Amanita' +
         '&fq=multimedia:Image&fq=-assertion_user_id:*&im=true&facet=off&pageSize=5&start=0&callback=?';
     //console.log('Loading images from: ' + url);
 
@@ -276,7 +275,7 @@ function loadGalleryType(category, start) {
     var mapShapeFilterUnencoded = $('<textarea />').html(SHOW_CONF.shape_filter).text();
     var url = SHOW_CONF.biocacheServiceUrl  +
         '/occurrences/search.json?q=' +
-        mapShapeFilterUnencoded + /* 'Amanita' + */
+        /* mapShapeFilterUnencoded + */ 'Amanita' +
         '&fq=multimedia:"Image"&pageSize=' + pageSize +
         '&facet=off&start=' + start + imageCategoryParams[category] + '&im=true&callback=?';
 
