@@ -11,7 +11,7 @@ buildscript {
 }
 
 version "0.0.1-SNAPSHOT"
-group "au.org.ala.plugins.grails"
+group "uk.org.nbn.plugins.grails"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
@@ -91,12 +91,13 @@ grailsPublish {
     }
     issueTrackerUrl = 'https://github.com/nbnuk/nbn-places-plugin/issues'
     vcsUrl = 'https://github.com/nbnuk/nbn-places-plugin'
-    title = "NBN Site Plugin"
-    desc = "This plugin provides the presentation layer of the NBN Site"
+    title = "NBN Places Plugin"
+    desc = "This plugin provides the presentation layer of the NBN Places portal"
     developers = [
             davem: "Dave Martin",
             nickdr: "Nick dos Remedios",
-            dougp: "Doug Palmer"
+            dougp: "Doug Palmer",
+            reubenroberts: "Reuben Roberts"
     ]
 }
 

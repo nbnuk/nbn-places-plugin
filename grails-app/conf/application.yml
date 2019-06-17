@@ -2,7 +2,7 @@
 grails:
     profile: web-plugin
     codegen:
-        defaultPackage: au.org.ala.bie.plugin
+        defaultPackage: uk.org.nbn.places.plugin
     spring:
         transactionManagement:
             proxies: false

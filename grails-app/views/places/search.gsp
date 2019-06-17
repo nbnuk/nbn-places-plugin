@@ -12,7 +12,7 @@
   - implied. See the License for the specific language governing
   - rights and limitations under the License.
   --}%
-<%@ page import="au.org.ala.bie.BieTagLib" contentType="text/html;charset=UTF-8" %>
+<%@ page import="uk.org.nbn.places.BieTagLib" contentType="text/html;charset=UTF-8" %>
 <g:set var="alaUrl" value="${grailsApplication.config.ala.baseURL}"/>
 <g:set var="biocacheUrl" value="${grailsApplication.config.biocache.baseURL}"/>
 <!doctype html>
