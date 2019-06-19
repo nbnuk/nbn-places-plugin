@@ -411,3 +411,85 @@ function collapseImageGallery(btn) {
 }
 
 
+$(document).ready(function() {
+    // listeners for sort widgets
+    $("select#sort-by").change(function () {
+        var val = $("option:selected", this).val();
+        reloadWithParam('sortField', val);
+    });
+    $("select#per-page").change(function() {
+        var val = $("option:selected", this).val();
+        reloadWithParam('rows',val);
+    });
+
+    fixTabTaxaPaginationLinks();
+});
+
+/**
+ * Catch sort drop-down and build GET URL manually
+ */
+function reloadWithParam(paramName, paramValue) {
+    var paramList = [];
+    var sort = $.getQueryParam('sortField');
+    if (sort == null || sort === undefined) {
+        sort = $('#sort-by').find(":selected").val();
+    }
+    var rows = $.getQueryParam('rows');
+    if (rows == null || rows === undefined) {
+        rows = $('#per-page').find(":selected").val();
+    }
+
+    // add sort param if already set
+    if (paramName != 'sortField' && (sort != null && sort !== undefined)) {
+        paramList.push('sortField' + "=" + sort);
+    }
+    // add rows param if already set
+    if (paramName != 'rows' && rows != null) {
+        paramList.push('rows' + "=" + rows);
+    }
+
+    // add the changed value
+    if (paramName != null && paramValue != null) {
+        paramList.push(paramName + "=" +paramValue);
+    }
+    //alert("params = "+paramList.join("&"));
+    window.location.href = window.location.pathname + '?' + paramList.join('&') + '#taxa-list';
+}
+
+// jQuery getQueryParam Plugin 1.0.0 (20100429)
+// By John Terenzio | http://plugins.jquery.com/project/getqueryparam | MIT License
+// Adapted by Nick dos Remedios to handle multiple params with same name - return a list
+(function ($) {
+    // jQuery method, this will work like PHP's $_GET[]
+    $.getQueryParam = function (param) {
+        // get the pairs of params fist
+        var pairs = location.search.substring(1).split('&');
+        var values = [];
+        // now iterate each pair
+        for (var i = 0; i < pairs.length; i++) {
+            var params = pairs[i].split('=');
+            if (params[0] == param) {
+                // if the param doesn't have a value, like ?photos&videos, then return an empty string
+                //return params[1] || '';
+                values.push(params[1]);
+            }
+        }
+
+        if (values.length > 0) {
+            return values;
+        } else {
+            //otherwise return undefined to signify that the param does not exist
+            return undefined;
+        }
+
+    };
+})(jQuery);
+
+//HACK to include anchor tag in pagination control on taxa tab
+function fixTabTaxaPaginationLinks() {
+    $("#paginationTabTaxa a").each(function() {
+        var oldUrl = $(this).attr("href");
+        var newUrl = oldUrl + "#taxa-list";
+        $(this).attr("href", newUrl);
+    });
+}

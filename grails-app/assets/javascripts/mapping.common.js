@@ -223,11 +223,19 @@ function fitMapToBounds(MAP_CONF) {
                     if (lon_max === null || lon_max < data[3]) { lon_max = data[3]; changed = true;}
                 }
                 if (changed) {
+                    if (lon_min == lon_max && lat_min == lat_max) {
+                        lon_min -= 0.00001;
+                        lon_max += 0.00001;
+                        lat_min -= 0.00001;
+                        lat_max += 0.00001;
+                    }
                     var sw = L.latLng(lon_min || 0, lat_min || 0);
                     var ne = L.latLng(lon_max || 0, lat_max || 0);
-                    //console.log("sw", sw.toString());
-                    //console.log("ne", ne.toString());
+                    console.log("sw", sw.toString());
+                    console.log("ne", ne.toString());
                     var dataBounds = L.latLngBounds(sw, ne);
+                    console.log(dataBounds);
+                    console.log("was dataBounds");
                     //var mapBounds = MAP_CONF.map.getBounds();
                     MAP_CONF.map.fitBounds(dataBounds);
                     if (MAP_CONF.map.getZoom() > 15) {

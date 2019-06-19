@@ -202,6 +202,11 @@ class PlacesController {
         def placeDetails = bieService.getPlaceDetails(guid)
         log.info "show - guid = ${guid} "
 
+        def startIndex = params.offset?:0
+        def rows = params.rows ?: (grailsApplication.config?.show?.taxa?.defaultRows ?: 20)
+        def sortField = params.sortField?:(grailsApplication.config?.show?.taxa?.defaultSortField?:"")
+
+
         def recordsFilter = getRecordsFilter()
 
         if (!placeDetails) {
@@ -234,7 +239,14 @@ class PlacesController {
             def place_cl = layerDetails.fid
             def place_clName = layerDetails.name
 
-            def placeTaxonList = bieService.getTaxonListForPlace(place_cl, place_clName)
+            def placeTaxonList = bieService.getTaxonListForPlace(place_cl, place_clName, startIndex, rows, sortField)
+            def placeTaxonListResultCount = 0
+            def taxonCountTotalJSON = bieService.getPlaceSpeciesCounts(guid)
+            if (taxonCountTotalJSON) {
+                def js = new JsonSlurper()
+                def taxonCountTotal = js.parseText(taxonCountTotalJSON)
+                placeTaxonListResultCount = (taxonCountTotal?.speciesCount?:"0").toInteger()
+            }
 
             def pageResultsOccsPresence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "presence", false)
             def pageResultsOccsAbsence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "absence", false)
@@ -281,6 +293,7 @@ class PlacesController {
                     searchResultsPresence: searchResultsPresence,
                     searchResultsAbsence: searchResultsAbsence,
                     taxonList: placeTaxonList,
+                    taxonListCount: placeTaxonListResultCount,
                     allResultsOccurrenceRecords: allResultsOccs,
                     allResultsOccurrenceRecordsNoMapFilter: allResultsOccsNoMapFilter,
                     pageResultsOccurrenceRecords: pageResultsOccs,

@@ -13,7 +13,7 @@ class BieService {
     def searchBie(SearchRequestParamsDTO requestObj) {
 
         def queryUrl = grailsApplication.config.bieService.baseURL + "/search?" + requestObj.getQueryString() +
-                "&facets=" + grailsApplication.config.facets
+                "&facets=" + grailsApplication.config.search?.facets
         queryUrl += "&q.op=OR"
 
         //add a query context for BIE - to reduce places to a subset
@@ -150,15 +150,17 @@ class BieService {
         url
     }
 
-    def getTaxonListForPlace(cl, clName) {
+    def getTaxonListForPlace(cl, clName, startIndex, rows, sortField) {
 
         //TODO: need to set reasonable flimit and implement paging?
 
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&flimit=-1&fsort=index&stats=%7B!tag=piv1%20max=true%7Dyear';
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&stats=%7B!tag=piv1%20max=true%7Dyear';
 
         url = url + getUrlFqForRecFilter()
+        log.info("getTaxonListForPlace with stats before paging = " + url);
+        url = url + "&fsort=" + sortField + "&flimit=" + rows + "&foffset=" + startIndex
 
-        //log.info("getTaxonListForPlace with stats = " + url);
+        log.info("getTaxonListForPlace with stats = " + url);
         def json = webService.get(url)
         def tryOldWSWithoutStats = false
         if (!json || json=="{}") {
