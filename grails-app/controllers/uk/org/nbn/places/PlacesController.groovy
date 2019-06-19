@@ -18,7 +18,7 @@ import uk.org.nbn.places.webapp2.SearchRequestParamsDTO
 import grails.converters.JSON
 import groovy.json.JsonSlurper
 import org.grails.web.json.JSONObject
-
+import javax.servlet.http.Cookie
 
 /**
  * Places Controller
@@ -198,6 +198,29 @@ class PlacesController {
      */
     def show = {
         def guid = regularise(params.guid)
+        //preserve search URL as cookie. If coming from internal page reload (e.g. for taxon list sort) then use cookie
+        //note: if the user performs another search on another tab, then reloading the place page will change the 'back to search' link to the new search.
+        def fromURL = ''
+        if (request) {
+            fromURL = request.getHeader('referer')?:''
+        }
+        if (fromURL.contains('/search')) {
+            javax.servlet.http.Cookie searchCookie = new Cookie("searchPage", fromURL)
+            searchCookie.path = '/'
+            searchCookie.maxAge = 60*60
+            response.addCookie(searchCookie)
+        } else {
+            fromURL = ''
+            request.cookies.each {
+                if (it.name == 'searchPage') {
+                    fromURL = it.value
+                }
+            }
+            if (fromURL == '') fromURL= '/'
+
+        }
+
+        request.setAttribute("search_page",fromURL)
 
         def placeDetails = bieService.getPlaceDetails(guid)
         log.info "show - guid = ${guid} "

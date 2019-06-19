@@ -62,7 +62,7 @@
         <div class="header-inner">
 
                 <h5 class="pull-right" style="clear:right">
-                    <a href="${request.getHeader('referer')}"
+                    <a href="${request.getAttribute("search_page")}"
                        title="Back to search" class="btn btn-sm btn-default active">Back to search</a>
                 </h5>
 
