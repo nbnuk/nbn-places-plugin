@@ -228,7 +228,7 @@ function fitMapToBounds(MAP_CONF) {
                     //console.log("sw", sw.toString());
                     //console.log("ne", ne.toString());
                     var dataBounds = L.latLngBounds(sw, ne);
-                    var mapBounds = MAP_CONF.map.getBounds();
+                    //var mapBounds = MAP_CONF.map.getBounds();
                     MAP_CONF.map.fitBounds(dataBounds);
                     if (MAP_CONF.map.getZoom() > 15) {
                         MAP_CONF.map.setZoom(15);

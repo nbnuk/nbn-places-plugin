@@ -15,12 +15,6 @@
 
     <div id="cat_nonavailable">
         <h2>No images available for this place</h2>
-
-        <p>
-            If you have images for this place that you would like to share
-            with ${raw(grailsApplication.config.skin.orgNameLong)},
-            please upload using the upload tools.
-        </p>
     </div>
     <img src="${resource(dir: 'images', file: 'spinner.gif', plugin: 'placesPlugin')}" id="gallerySpinner" class="hide" alt="spinner icon"/>
 </section>

@@ -292,8 +292,8 @@
                 <thead style="font-weight:bold">
                 <tr>
                     <td>Name</td>
-                    <td>Diocese</td>
                     <td>Parish</td>
+                    <td>Diocese</td>
                     <td>Function</td>
 
                 </tr>
@@ -304,8 +304,8 @@
 
                         <td><a href="${request.contextPath}/places/${result.guid}">${result.name}</a></td>
 
-                        <td>${result.diocese_na_s}</td>
                         <td>${result.parish_leg_s}</td>
+                        <td>${result.diocese_na_s}</td>
                         <td>${result.function_s}</td>
                     </tr>
                 </g:each>
@@ -344,8 +344,8 @@
                                 <select class="form-control input-sm" id="sort-by2" name="sort-by2">
                                     <option value="score" ${(params.sortField == 'score' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'score')) ? "selected=\"selected\"" : ""}>best match</option>
                                     <option value="name" ${(params.sortField == 'name' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'name')) ? "selected=\"selected\"" : ""}>name</option>
-                                    <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
                                     <option value="parish_leg_s" ${(params.sortField == 'parish_leg_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'parish_leg_s')) ? "selected=\"selected\"" : ""}>parish</option>
+                                    <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
                                     <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
                                 </select>
                             </div>
@@ -365,8 +365,8 @@
 
                         <div class="place-map">
 
-                            <g:if test="${message(code: 'overview.map.button.records.map.subtitle', default: '')}">
-                                <p>${g.message(code: 'overview.map.button.records.map.subtitle')}</p>
+                            <g:if test="${message(code: 'overview.map.button.search.map.subtitle', default: '')}">
+                                <p>${g.message(code: 'overview.map.button.search.map.subtitle')}</p>
                             </g:if>
                             <div id="leafletMap"></div>
                             <!-- RR for legend display, if needed -->
