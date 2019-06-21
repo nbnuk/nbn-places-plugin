@@ -119,7 +119,7 @@
                        href='${biocacheUrl}/occurrences/search?q=${shape_filter}${recordsFilterToggle? "&fq="+recordsFilter : ""}'
                        title="${g.message(code:'overview.map.button.records.list', default:'View records')}"
                        role="button" target="_new"><g:message code="overview.map.button.records.list" default="View records"/></a>
-                    <a class="btn btn-primary btn-lg disabled"
+                    <a class="btn btn-primary btn-lg"
                         href='#downloadMap'
                         title="${g.message(code:'overview.map.button.download', default:'Download map')}"
                         role="button" data-toggle="modal"><g:message code="overview.map.button.download" default="Download map"/></a>
