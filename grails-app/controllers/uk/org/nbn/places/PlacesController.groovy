@@ -19,6 +19,8 @@ import grails.converters.JSON
 import groovy.json.JsonSlurper
 import org.grails.web.json.JSONObject
 import javax.servlet.http.Cookie
+//import org.geoscript.geom
+import com.vividsolutions.jts.io.WKTReader
 
 /**
  * Places Controller
@@ -303,6 +305,11 @@ class PlacesController {
 
 
             def centroid = extractVals(placeDetails.searchResults.results[0]?.centroid ?: 'POINT(999 999)')
+            def bbox = layerDetails.bbox
+            WKTReader wktr = new WKTReader()
+            def bbox_shp = wktr.read(bbox)
+            def shp_sw = [bbox_shp.getBoundary().points.coordinates[0].y, bbox_shp.getBoundary().points.coordinates[0].x]
+            def shp_ne = [bbox_shp.getBoundary().points.coordinates[2].y, bbox_shp.getBoundary().points.coordinates[2].x]
 
             def baseMaps = jsonSlurper.parseText(grailsApplication.config?.mapdownloads?.baseMaps?:'{}')
             def baseLayers = jsonSlurper.parseText(grailsApplication.config?.mapdownloads?.baseLayers?:'{}')
@@ -311,6 +318,8 @@ class PlacesController {
                     placeDetails: placeDetails.searchResults.results[0],
                     cl: place_cl,
                     clName: java.net.URLEncoder.encode(place_clName, "UTF-8"),
+                    shp_sw: shp_sw,
+                    shp_ne: shp_ne,
                     centroid: centroid,
                     searchResults: searchResults,
                     searchResultsPresence: searchResultsPresence,

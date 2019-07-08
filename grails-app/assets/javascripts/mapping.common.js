@@ -45,7 +45,6 @@ function checkIE() {
 function loadTheMap (MAP_CONF) {
     if (MAP_CONF.showResultsMap) {
         MAP_CONF.resultsToMapJSON = JSON.parse($('<textarea/>').html(MAP_CONF.resultsToMap).text());
-
         var firstMapShow = true;
         var isIE = checkIE();
         //leaflet maps don't like being loaded in a div that isn't being shown, this fixes the position of the map
@@ -60,10 +59,9 @@ function loadTheMap (MAP_CONF) {
                             } else {
                                 var event = document.createEvent("Event");
                                 event.initEvent("resize", false, true);
-                                // args: string type, boolean bubbles, boolean cancelable
                                 window.dispatchEvent(event);
                             }
-                            fitMapToBounds(MAP_CONF);
+                            fitResultsMapToBounds(MAP_CONF);
                         }
                     }
                 });
@@ -76,7 +74,6 @@ function loadTheMap (MAP_CONF) {
             } else {
                 var event = document.createEvent("Event");
                 event.initEvent("resize", false, true);
-                // args: string type, boolean bubbles, boolean cancelable
                 window.dispatchEvent(event);
             }
         });
@@ -109,7 +106,7 @@ function setPresenceAbsenceToggle(MAP_CONF, searchResultsPresence, searchResults
 }
 
 function removeMap(MAP_CONF) {
-    if(MAP_CONF.map) {
+    if (MAP_CONF.map) {
         MAP_CONF.map.remove();
         MAP_CONF.map.off();
         delete MAP_CONF.map;
@@ -195,61 +192,58 @@ function setMapTitle (MAP_CONF) {
     }
 }
 
+function extractCoordsFromWKTPoint(wkt) {
+    //TODO this is very hacky WKT extraction
+    return wkt.substring("POINT(".length, wkt.length - 1).split(" ")
+}
+
 var placeLayers = new L.LayerGroup();
 var shapeLayers = new L.LayerGroup();
 
-function fitMapToBounds(MAP_CONF) {
+function fitResultsMapToBounds(MAP_CONF) {
     var lat_min = null, lat_max = null, lon_min = null, lon_max = null;
-    var mapContextUnencoded = $('<textarea />').html(MAP_CONF.mapQueryContext).text(); //to convert e.g. &quot; back to "
+    var changed = false;
 
-    for (i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
-        if (Number(MAP_CONF.resultsToMapJSON.results[i].occurrenceCount) > 0) {
-            var mapShapeFilterUnencoded = $('<textarea />').html(MAP_CONF.shape_filter).text();
-            var jsonUrl = MAP_CONF.biocacheServiceUrl + "/mapping/bounds.json?q=" + mapShapeFilterUnencoded + "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
-            if (MAP_CONF.presenceOrAbsence == 'presence') {
-                jsonUrl += "&fq=occurrence_status:present"
-            } else if (MAP_CONF.presenceOrAbsence == 'absence') {
-                jsonUrl += "&fq=-occurrence_status:present"
-            }
-            jsonUrl += "&callback=?";
-            $.getJSON(jsonUrl, function(data) {
-                var changed = false;
-                if (data.length == 4 && data[0] != 0 && data[1] != 0) {
-                    //console.log("data", data);
-
-                    if (lat_min === null || lat_min > data[0]) { lat_min = data[0]; changed = true;}
-                    if (lat_max === null || lat_max < data[2]) { lat_max = data[2]; changed = true;}
-                    if (lon_min === null || lon_min > data[1]) { lon_min = data[1]; changed = true;}
-                    if (lon_max === null || lon_max < data[3]) { lon_max = data[3]; changed = true;}
-                }
-                if (changed) {
-                    if (lon_min == lon_max && lat_min == lat_max) {
-                        lon_min -= 0.00001;
-                        lon_max += 0.00001;
-                        lat_min -= 0.00001;
-                        lat_max += 0.00001;
-                    }
-                    var sw = L.latLng(lon_min || 0, lat_min || 0);
-                    var ne = L.latLng(lon_max || 0, lat_max || 0);
-                    console.log("sw", sw.toString());
-                    console.log("ne", ne.toString());
-                    var dataBounds = L.latLngBounds(sw, ne);
-                    console.log(dataBounds);
-                    console.log("was dataBounds");
-                    //var mapBounds = MAP_CONF.map.getBounds();
-                    MAP_CONF.map.fitBounds(dataBounds);
-                    if (MAP_CONF.map.getZoom() > 15) {
-                        MAP_CONF.map.setZoom(15);
-                    }
-                    //console.log("zoom = " + MAP_CONF.map.getZoom());
-                    MAP_CONF.map.invalidateSize(true);
-                }
-            });
+    for (var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
+        var place = MAP_CONF.resultsToMapJSON.results[i];
+        var feature = extractCoordsFromWKTPoint(place.centroid);
+        if (lat_min === null || lat_min > feature[1]) {
+            lat_min = feature[1];
+            changed = true;
+        }
+        if (lat_max === null || lat_max < feature[1]) {
+            lat_max = feature[1];
+            changed = true;
+        }
+        if (lon_min === null || lon_min > feature[0]) {
+            lon_min = feature[0];
+            changed = true;
+        }
+        if (lon_max === null || lon_max < feature[0]) {
+            lon_max = feature[0];
+            changed = true;
         }
     }
-}
+    if (changed) {
+        if (lon_min == lon_max) {
+            lon_min -= 0.00001;
+            lon_max += 0.00001;
+        }
+        if (lat_min == lat_max) {
+            lat_min -= 0.00001;
+            lat_max += 0.00001;
+        }
+        var sw = L.latLng(lat_min || 0, lon_min || 0);
+        var ne = L.latLng(lat_max || 0, lon_max || 0);
 
-function onMarkerClick(marker, e) {
+        var dataBounds = L.latLngBounds(sw, ne);
+
+        setTimeout(function() {
+            //seem to be running int https://github.com/Leaflet/Leaflet/issues/3249: if map is not in open tab when page first loads
+            MAP_CONF.map.fitBounds(dataBounds, {maxZoom: MAP_CONF.defaultShapeZoom, animate: false});
+        }, 300);
+
+    }
 }
 
 function loadMap(MAP_CONF) {
@@ -275,6 +269,8 @@ function loadMap(MAP_CONF) {
         for( var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
             var place = MAP_CONF.resultsToMapJSON.results[i];
 
+            if (!place.recordCount) place.recordCount=0; //if not sampled yet
+
             var placeLink = "<a href='places/" + place.id + "'>" + place.name + "</a>";
             var placeStats = "<br/>Records: " + place.recordCount.toString();
             if (!place.recordCount) placeStats += "<br/>Species: 0";
@@ -287,7 +283,7 @@ function loadMap(MAP_CONF) {
                 popupAnchor: [0,-36],
                 html: '<span style="' + placeHtmlStyles.replace('[greenColourMatched]',fillColorScheme) + '"/>'
             });
-            var feature = place.centroid.substring("POINT(".length, place.centroid.length-1).split(" "); //TODO this is very hacky WKT extraction
+            var feature = extractCoordsFromWKTPoint(place.centroid);
             var marker = L.marker([feature[1],feature[0]], {icon: placeIcon});
             marker.properties = {};
             marker.properties.placeGuid = place.id;
@@ -474,14 +470,23 @@ function loadMap(MAP_CONF) {
     });
 
     MAP_CONF.map.invalidateSize(false);
+
     if (MAP_CONF.mapType == 'show') {
-        if (MAP_CONF.centroidLat < 91 && MAP_CONF.centroidLon < 181) { //real values
-            MAP_CONF.map.setView([MAP_CONF.centroidLat, MAP_CONF.centroidLon],MAP_CONF.shapeZoomLevel);
-            console.log("zoomed default = " + MAP_CONF.map.getZoom());
+        console.log(MAP_CONF);
+        if (MAP_CONF.centroid[1] < 91 && MAP_CONF.centroid[0] < 181) { //real values
+            var dataBounds = L.latLngBounds(MAP_CONF.shp_sw, MAP_CONF.shp_ne);
+            MAP_CONF.map.fitBounds(dataBounds);
+            if (MAP_CONF.map.getZoom() > MAP_CONF.defaultShapeZoom) {
+                MAP_CONF.map.setZoom(MAP_CONF.defaultShapeZoom);
+            }
+            MAP_CONF.map.invalidateSize(true);
         }
     }
     MAP_CONF.map.on('click', pointLookupClickRegister);
-    fitMapToBounds(MAP_CONF);
+
+    if (MAP_CONF.mapType == 'search') {
+        fitResultsMapToBounds(MAP_CONF);
+    }
 
     if (MAP_CONF.mapType == 'search') {
         $('.legendTable').html('');
@@ -627,6 +632,9 @@ function pointLookup(e) {
     }
 
     MAP_CONF.popupRadius = radius;
+
+    if (!MAP_CONF.query) return;
+
     var mapQuery = MAP_CONF.query.replace(/&(?:lat|lon|radius)\=[\-\.0-9]+/g, ''); // remove existing lat/lon/radius/wkt params
     MAP_CONF.map.spin(true);
 

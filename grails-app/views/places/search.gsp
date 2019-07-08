@@ -446,6 +446,7 @@ var MAP_CONF = {
     defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude ?: 0},
     defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude ?: 0},
     defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel ?: 5},
+    defaultShapeZoom:           ${grailsApplication.config.map?.default?.shapeZoomLevel ?: 10},
     mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
     defaultMapUrl:              "${grailsApplication.config.map.default.url}",
     defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
