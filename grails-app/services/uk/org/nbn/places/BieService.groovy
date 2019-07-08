@@ -24,6 +24,7 @@ class BieService {
         }
 
 
+        queryUrl = queryUrl.replace('"','%22')
         log.info("queryUrlBie = " + queryUrl)
 
         def json = webService.get(queryUrl)
