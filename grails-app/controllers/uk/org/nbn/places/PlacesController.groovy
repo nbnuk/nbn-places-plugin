@@ -275,7 +275,7 @@ class PlacesController {
 
             def pageResultsOccsPresence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "presence", false)
             def pageResultsOccsAbsence = bieService.getOccurrenceCountsForPlace(place_cl, place_clName, "absence", false)
-            def allResultsOccs = pageResultsOccsPresence + pageResultsOccsAbsence
+            def allResultsOccs = (pageResultsOccsPresence ?: 0) + (pageResultsOccsAbsence ?: 0)
             if (pageResultsOccsPresence == null) {
                 pageResultsOccsPresence = -1
                 allResultsOccs = -1
