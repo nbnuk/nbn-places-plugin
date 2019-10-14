@@ -1,5 +1,6 @@
 package uk.org.nbn.places
 
+import org.apache.commons.httpclient.util.URIUtil
 import uk.org.nbn.places.webapp2.SearchRequestParamsDTO
 import grails.converters.JSON
 import org.grails.web.json.JSONObject
@@ -19,7 +20,7 @@ class BieService {
         //add a query context for BIE - to reduce places to a subset
         if (grailsApplication.config.bieService.queryContext) {
 
-            queryUrl = queryUrl + "&" + grailsApplication.config.bieService.queryContext.replaceAll(" ", "%20")
+            queryUrl = queryUrl + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.bieService.queryContext).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
             /* URLEncoder.encode: encoding &,= and : breaks these tokens for SOLR */
         }
 
@@ -145,7 +146,7 @@ class BieService {
     def getUrlFqForRecFilter () {
         def url = ""
         if (grailsApplication.config.biocacheService?.queryContext) {
-            url = url + "&fq=(" + (grailsApplication.config.biocacheService.queryContext).replaceAll(" ", "%20") + ")"
+            url = url + "&fq=(" + URIUtil.encodeWithinQuery(grailsApplication.config.biocacheService.queryContext).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":") + ")"
 
         }
         url
@@ -202,7 +203,7 @@ class BieService {
 
         if (!overrideAdditionalMapFilter) {
             if (grailsApplication.config?.show?.additionalMapFilter) {
-                url = url + "&" + grailsApplication.config.show?.additionalMapFilter.replaceAll(" ", "%20")
+                url = url + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.show?.additionalMapFilter).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
             }
         }
 

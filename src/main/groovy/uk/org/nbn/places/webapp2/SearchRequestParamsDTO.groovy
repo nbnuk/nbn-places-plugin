@@ -15,6 +15,7 @@
 
 package uk.org.nbn.places.webapp2
 
+import jdk.nashorn.internal.runtime.URIUtils
 import org.apache.commons.httpclient.util.URIUtil
 
 /**
@@ -44,10 +45,11 @@ class SearchRequestParamsDTO {
         queryStr.append("q=" + URIUtil.encodeWithinQuery(q)) //q.encodeAsURL())
         def fqIsList = fq.getClass().metaClass.getMetaMethod("join", String)
         if (fq && fqIsList) {
-            def newFq = fq.collect { it.replaceAll(/\s+/, "+") }
+            //def newFq = fq.collect { it.replaceAll(/\s+/, "+") }
+            def newFq = fq.collect { URIUtil.encodeWithinQuery(it).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":") }
             queryStr.append("&fq=" + newFq?.join("&fq="))
         } else if (fq) {
-            queryStr.append("&fq=" + fq.replaceAll(" ", "+"))
+            queryStr.append("&fq=" + URIUtil.encodeWithinQuery(fq).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":"))
         }
         queryStr.append("&start=" + start)
         queryStr.append("&rows=" + rows)
