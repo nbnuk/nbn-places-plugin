@@ -386,21 +386,41 @@ function loadMap(MAP_CONF) {
         scrollWheelZoom: false
     });
 
-    var defaultBaseLayer = L.tileLayer(MAP_CONF.defaultMapUrl, {
+    var baseLayerLyrsVar = '';
+    switch (MAP_CONF.defaultMapBaselayer) {
+        case 'Minimal':     baseLayerLyrsVar = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'; break;
+        case 'Road':        baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'; break;
+        case 'Terrain':     baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'; break;
+        case 'Satellite':   baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}'; break;
+    }
+
+    var defaultBaseLayer = L.tileLayer(baseLayerLyrsVar, {
         attribution: MAP_CONF.mapAttribution,
-        subdomains: MAP_CONF.defaultMapDomain,
+        subdomains: (MAP_CONF.defaultMapBaselayer != 'Minimal'? ['mt0','mt1','mt2','mt3'] : 'abcd'),
         mapid: MAP_CONF.defaultMapId,
-        token: MAP_CONF.defaultMapToken
+        token: MAP_CONF.defaultMapToken,
+        maxZoom: (MAP_CONF.defaultMapBaselayer != 'Minimal'? 20 : 19)
     });
 
     defaultBaseLayer.addTo(MAP_CONF.map);
 
     var baseLayers = {
-        "Minimal" : defaultBaseLayer,
+        "Minimal" : new L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }),
+        //"Minimal": new L.tileLayer("",{}),
         "Road" :  new L.Google('ROADMAP'),
         "Terrain" : new L.Google('TERRAIN'),
         "Satellite" : new L.Google('HYBRID')
     };
+    switch (MAP_CONF.defaultMapBaselayer) {
+        case 'Minimal':     baseLayers.Minimal = defaultBaseLayer; break;
+        case 'Road':        baseLayers.Road = defaultBaseLayer; break;
+        case 'Terrain':     baseLayers.Terrain = defaultBaseLayer; break;
+        case 'Satellite':   baseLayers.Satellite = defaultBaseLayer; break;
+    }
 
     var overlays = {};
 
