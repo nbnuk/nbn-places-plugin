@@ -99,16 +99,16 @@ class PlacesController {
      * Search page - display search results (places) from the BIE
      */
     def search = {
-        def query = params.q?:"".trim()
-        if(query == "*") query = ""
+        def query = params.q ?: "".trim()
+        if (query == "*") query = ""
         def filterQuery = params.list('fq') // will be a list even with only one value
-        def startIndex = params.offset?:0
+        def startIndex = params.offset ?: 0
 
 
         def rows = params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)
 
-        def sortField = params.sortField?:(grailsApplication.config?.search?.defaultSortField?:"")
-        def sortDirection = params.dir?:(grailsApplication.config?.search?.defaultSortOrder?:"desc")
+        def sortField = params.sortField ?: (grailsApplication.config?.search?.defaultSortField ?: "")
+        def sortDirection = params.dir ?: (grailsApplication.config?.search?.defaultSortOrder ?: "desc")
 
         if (params.dir && !params.sortField) {
             sortField = "score" // default sort (field) of "score" when order is defined on its own
@@ -119,7 +119,11 @@ class PlacesController {
         def requestObj = new SearchRequestParamsDTO(query, filterQuery, startIndex, rows, sortField, sortDirection)
         //log.info "SearchRequestParamsDTO = " + requestObj
         def searchResults = bieService.searchBie(requestObj)
-        def searchResultsNamesAndRecCounts = bieService.getPlacesAndRecordCounts(searchResults)
+        //revert to below (which is expensive) if biocacheService.queryContext= is not empty, since then cannot use overall place occurrence counts any more
+        def searchResultsNamesAndRecCounts
+        if ((grailsApplication.config.biocacheService?.queryContext ?: "") != "") {
+            searchResultsNamesAndRecCounts = bieService.getPlacesAndRecordCounts(searchResults)
+        }
 
         def sr = searchResults?.searchResults
 
@@ -133,11 +137,16 @@ class PlacesController {
                             element.label == result.name
                         }
                         if (siteStat) {
-                            result.recordCount = siteStat.count
+                            result.occurrenceCount = siteStat.count
                         } else {
-                            result.recordCount = 0
+                            result.occurrenceCount = 0
                         }
                     }
+                }
+            } else {
+                //replace nulls with 0
+                sr.results.each { result ->
+                    if (!result.occurrenceCount) result.occurrenceCount = 0
                 }
             }
 

@@ -64,7 +64,7 @@ class BieService {
 
             queryUrl = queryUrl + getUrlFqForRecFilter()
 
-            log.info(queryUrl)
+            log.info("getPlacesAndRecordCounts query = " + queryUrl)
             def json = webService.get(queryUrl)
             //log.debug "ETC json: " + json
             try {

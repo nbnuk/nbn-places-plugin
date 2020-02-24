@@ -19,9 +19,10 @@ var colours = [/* colorUtil */ "8B0000", "FF0000", "CD5C5C", "E9967A", "8B4513",
 ];
 
 //supports record counts up to ~170 million (as natural log scale)
-var greenColours = [ "CCFFCC", "B3FFB3", "99FF99", "80FF80", "66FF66", "4DFF4D", "33FF33", "1AFF1A", "00FF00", "00E600", "00CC00", "00B300", "009900", "008000", "006600", "004D00", "003300", "001A00" ];
+//var greenColours = [ "FEFEFE", "B3FFB3", "99FF99", "80FF80", "66FF66", "4DFF4D", "33FF33", "1AFF1A", "00FF00", "00E600", "00CC00", "00B300", "009900", "008000", "006600", "004D00", "003300", "001A00" ];
+var greenColours = [ "FEFEFE", "B3FFB3", "99FF99", "80FF80", "4DFF4D", "1AFF1A", "00E600", "00B300", "008000", "004D00", "003300", "001F00", "000500" ];
 
-var placeHtmlStyles = "background-color: #[greenColourMatched]; width: 3rem; height: 3rem; display: block; left: -1.5rem; top: -1.5rem; position: relative; border-radius: 3rem 3rem 0; transform: rotate(45deg); border: 1px solid #777;";
+var placeHtmlStyles = "background-color: #[greenColourMatched];";
 
 L.Icon.Default.imagePath = 'assets/leaflet/images/';
 
@@ -50,7 +51,7 @@ function loadTheMap (MAP_CONF) {
         //leaflet maps don't like being loaded in a div that isn't being shown, this fixes the position of the map
         $(function () {
             if (MAP_CONF.mapType == 'search') {
-                $("#tabs").tabs({
+                $("#results-tabs").tabs({
                     beforeActivate: function (event, ui) {
                         if (firstMapShow) {
                             firstMapShow = false;
@@ -269,19 +270,19 @@ function loadMap(MAP_CONF) {
         for( var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
             var place = MAP_CONF.resultsToMapJSON.results[i];
 
-            if (!place.recordCount) place.recordCount=0; //if not sampled yet
+            if (!place.occurrenceCount) place.occurrenceCount=0; //if not sampled yet
 
             var placeLink = "<a href='places/" + place.id + "'>" + place.name + "</a>";
-            var placeStats = "<br/>Records: " + place.recordCount.toString();
-            if (!place.recordCount) placeStats += "<br/>Species: 0";
-            var colIndx = Math.floor(Math.log(place.recordCount + 1));
+            var placeStats = "<br/>Records: " + place.occurrenceCount.toString();
+            if (!place.occurrenceCount) placeStats += "<br/>Species: 0";
+            var colIndx = Math.floor(Math.log(place.occurrenceCount + 1));
             if (colIndx > greenColours.length-1) colIndx = greenColours.length-1;
             var fillColorScheme = greenColours[colIndx];
             var placeIcon = L.divIcon({
                 iconAnchor: [0,24],
                 labelAnchor: [-6,0],
                 popupAnchor: [0,-36],
-                html: '<span style="' + placeHtmlStyles.replace('[greenColourMatched]',fillColorScheme) + '"/>'
+                html: '<span class="place-marker" style="' + placeHtmlStyles.replace('[greenColourMatched]',fillColorScheme) + '"/>'
             });
             var feature = extractCoordsFromWKTPoint(place.centroid);
             var marker = L.marker([feature[1],feature[0]], {icon: placeIcon});
@@ -389,9 +390,9 @@ function loadMap(MAP_CONF) {
     var baseLayerLyrsVar = '';
     switch (MAP_CONF.defaultMapBaselayer) {
         case 'Minimal':     baseLayerLyrsVar = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'; break;
-        case 'Road':        baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'; break;
-        case 'Terrain':     baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'; break;
-        case 'Satellite':   baseLayerLyrsVar = 'http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}'; break;
+        case 'Road':        baseLayerLyrsVar = 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'; break;
+        case 'Terrain':     baseLayerLyrsVar = 'https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'; break;
+        case 'Satellite':   baseLayerLyrsVar = 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}'; break;
     }
 
     var defaultBaseLayer = L.tileLayer(baseLayerLyrsVar, {
@@ -514,12 +515,16 @@ function loadMap(MAP_CONF) {
             .append($('<tr>')
                 .append($('<td>')
                     .addClass('legendTitle')
-                    .html("Places" + ":")
+                    .html("Records" + ":")
                 )
             );
 
-
-        addLegendItem("Places", 0, 0, 0, colours[0], false);
+        for (var numOccsLog = 0; numOccsLog < 11; numOccsLog++) {
+            var numOccs = Math.floor(Math.exp(numOccsLog) - 1);
+            if (numOccs > 1000) numOccs = Math.round(numOccs / 100) * 100;
+            if (numOccs > 10) numOccs = Math.round(numOccs / 10) * 10; //prettier numbers
+            addLegendItem(numOccs.toString(), 0, 0, 0, greenColours[numOccsLog], false);
+        }
 
     } else if (MAP_CONF.mapType == 'show') {
 

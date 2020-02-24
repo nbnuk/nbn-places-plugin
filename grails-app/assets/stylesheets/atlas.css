@@ -307,7 +307,7 @@ html, body {height:100%;}
     font-size: 20px;
 }
 
-/* for BBG since bad green colour */
+/* for BBG since tricky green colour */
 .main-content a {
     /* font-weight: bold; */
     filter: brightness(50%);
@@ -348,4 +348,40 @@ html, body {height:100%;}
 
 .collapse {
     visibility: visible !important;
+}
+
+.place-marker-old {
+    width: 3rem;
+    height: 3rem;
+    display: block;
+    left: -1.5rem;
+    top: -1.5rem;
+    position: relative;
+    border-radius: 3rem 3rem 0;
+    transform: rotate(45deg);
+    border: 1px solid #777;
+}
+
+
+
+.leaflet-div-icon {
+    border: none !important;
+    background-color: transparent !important;
+}
+
+.dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.place-marker {
+    border:1px solid #999999;
+    height:12px;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:12px;
+    display: inline-block;
 }

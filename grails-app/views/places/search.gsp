@@ -235,7 +235,7 @@
                 <div class="col-sm-9">
 
         <g:if test="${grailsApplication.config?.search?.mapResults == 'true'}">
-            <div id="tabs" class="place-tabs">
+            <div id="results-tabs" class="place-tabs">
                 <ul class="nav nav-tabs">
                     <li class="active"><a id="t1" href="#tabs-1" data-toggle="tab">Results</a></li>
                     <li><a id="t2" href="#tabs-2" data-toggle="tab">Map</a></li>
@@ -257,6 +257,7 @@
                                     <option value="20" ${(params.rows == '20' || (!params.rows && grailsApplication.config?.search?.defaultRows == '20')) ? "selected=\"selected\"" : ""}>20</option>
                                     <option value="50" ${(params.rows == '50' || (!params.rows && grailsApplication.config?.search?.defaultRows == '50')) ? "selected=\"selected\"" : ""}>50</option>
                                     <option value="100" ${(params.rows == '100' || (!params.rows && grailsApplication.config?.search?.defaultRows == '100')) ? "selected=\"selected\"" : ""}>100</option>
+                                    <option value="1000" ${(params.rows == '1000' || (!params.rows && grailsApplication.config?.search?.defaultRows == '1000')) ? "selected=\"selected\"" : ""}>1000</option>
                                 </select>
                             </div>
 
@@ -268,6 +269,7 @@
                                     <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
                                     <option value="parish_leg_s" ${(params.sortField == 'parish_leg_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'parish_leg_s')) ? "selected=\"selected\"" : ""}>parish</option>
                                     <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
+                                    <option value="occurrenceCount" ${(params.sortField == 'occurrenceCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'occurrenceCount')) ? "selected=\"selected\"" : ""}>records</option>
                                 </select>
                             </div>
 
@@ -295,7 +297,7 @@
                     <td>Parish</td>
                     <td>Diocese</td>
                     <td>Function</td>
-
+                    <td>Records</td>
                 </tr>
                 </thead>
                 <tbody>
@@ -307,6 +309,7 @@
                         <td>${result.parish_leg_s}</td>
                         <td>${result.diocese_na_s}</td>
                         <td>${result.function_s}</td>
+                        <td>${result.occurrenceCount}</td>
                     </tr>
                 </g:each>
                 </tbody>
@@ -336,6 +339,7 @@
                                     <option value="20" ${(params.rows == '20' || (!params.rows && grailsApplication.config?.search?.defaultRows == '20')) ? "selected=\"selected\"" : ""}>20</option>
                                     <option value="50" ${(params.rows == '50' || (!params.rows && grailsApplication.config?.search?.defaultRows == '50')) ? "selected=\"selected\"" : ""}>50</option>
                                     <option value="100" ${(params.rows == '100' || (!params.rows && grailsApplication.config?.search?.defaultRows == '100')) ? "selected=\"selected\"" : ""}>100</option>
+                                    <option value="1000" ${(params.rows == '1000' || (!params.rows && grailsApplication.config?.search?.defaultRows == '1000')) ? "selected=\"selected\"" : ""}>1000</option>
                                 </select>
                             </div>
 
@@ -347,6 +351,7 @@
                                     <option value="parish_leg_s" ${(params.sortField == 'parish_leg_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'parish_leg_s')) ? "selected=\"selected\"" : ""}>parish</option>
                                     <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
                                     <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
+                                    <option value="occurrenceCount" ${(params.sortField == 'occurrenceCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'occurrenceCount')) ? "selected=\"selected\"" : ""}>records</option>
                                 </select>
                             </div>
 
@@ -364,7 +369,6 @@
                     <!-- </div> result-options -->
 
                         <div class="place-map">
-
                             <g:if test="${message(code: 'overview.map.button.search.map.subtitle', default: '')}">
                                 <p>${g.message(code: 'overview.map.button.search.map.subtitle')}</p>
                             </g:if>

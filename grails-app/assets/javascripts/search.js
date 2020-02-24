@@ -77,6 +77,15 @@ function fixTabTwoPaginationLinks() {
     });
 }
 
+/*
+$(window).load(function() {
+    //remove autocomplete styling if autocomplete css is messing things up
+    var elems_to_restyle = ["#results-tabs", "#results-tabs ul", "#results-tabs ul li", "#results-tabs ul li a", "#tabs-1", "#tabs-2"];
+    for( var i = 0; i < elems_to_restyle.length; i++) {
+        $(elems_to_restyle[i]).removeClass(
+            "ui-tabs ui-tabs-anchor ui-tabs-active ui-state-active ui-state-default ui-tabs-tab ui-tab ui-corner-top ui-corner-all ui-widget ui-ui-widget ui-widget-context ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-widget-content ui-corner-bottom");
+    }
+}); */
 
 
 /**
