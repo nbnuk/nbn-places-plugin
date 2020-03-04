@@ -14,6 +14,7 @@
  */
 package uk.org.nbn.places
 
+import org.apache.commons.httpclient.util.URIUtil
 import uk.org.nbn.places.webapp2.SearchRequestParamsDTO
 import grails.converters.JSON
 import groovy.json.JsonSlurper
@@ -44,13 +45,21 @@ class PlacesController {
     * Get taxon count for a place
     */
     def placeStats = {
+        def js = new JsonSlurper()
+        def result = js.parseText('{}')
         if (params.guid) {
-            def response = bieService.getPlaceSpeciesCounts(params.guid)
-            def js = new JsonSlurper()
-            def results = js.parseText(response)
-            JSON.use('deep') {
-                render results as JSON
+            def speciesInfo = bieService.getPlaceSpeciesCounts(params.guid)
+
+            def speciesResults = js.parseText(speciesInfo)
+            def placeDetails = bieService.getPlaceDetails(params.guid)
+
+            if (placeDetails?.searchResults?.results) {
+                result = placeDetails.searchResults.results[0]
+                result.speciesCount = Integer.parseInt(speciesResults.speciesCount)
             }
+        }
+        JSON.use('deep') {
+            render result as JSON
         }
     }
 
@@ -118,7 +127,9 @@ class PlacesController {
 
         def requestObj = new SearchRequestParamsDTO(query, filterQuery, startIndex, rows, sortField, sortDirection)
         //log.info "SearchRequestParamsDTO = " + requestObj
-        def searchResults = bieService.searchBie(requestObj)
+        def searchResultsArr = bieService.searchBie(requestObj)
+        def searchResults = searchResultsArr[0]
+        def searchResultsQuery = searchResultsArr[1]
         //revert to below (which is expensive) if biocacheService.queryContext= is not empty, since then cannot use overall place occurrence counts any more
         def searchResultsNamesAndRecCounts
         if ((grailsApplication.config.biocacheService?.queryContext ?: "") != "") {
@@ -160,7 +171,7 @@ class PlacesController {
         if (filterQuery.size() > 1 && filterQuery.findAll { it.size() == 0 }) {
             // remove empty fq= params IF more than 1 fq param present
             def fq2 = filterQuery.findAll { it } // excludes empty or null elements
-            redirect(action: "search", params: [q: query, fq: fq2, start: startIndex, rows: rows, score: sortField, dir: sortDirection])
+            redirect(action: "search", params: [q: query, fq: fq2, start: startIndex, rows: rows, score: sortField, dir: sortDirection, actualQueryUsed: searchResultsQuery])
         }
 
         if (searchResults instanceof JSONObject && searchResults.has("error")) {
@@ -184,13 +195,15 @@ class PlacesController {
                     }
                 }
             }
-
+            //def filterQueryUnencoded = URIUtil.decode(filterQuery)
+            def filterQueryJSON = filterQuery as grails.converters.JSON
             render(view: 'search', model: [
                     searchResults: searchResults?.searchResults,
                     facetMap: utilityService.addFacetMap(filterQuery),
                     query: query?.trim(),
-                    filterQuery: filterQuery,
-                    collectionsMap: utilityService.addFqUidMap(filterQuery)
+                    filterQueryJSON: filterQueryJSON,
+                    collectionsMap: utilityService.addFqUidMap(filterQuery),
+                    actualQueryUsed: searchResultsQuery
             ])
         }
     }

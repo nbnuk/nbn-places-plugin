@@ -267,6 +267,7 @@ function loadMap(MAP_CONF) {
     //search results: show place centroids
 
         //console.log("MAP_CONF.resultsToMapJSON.results.length = " + MAP_CONF.resultsToMapJSON.results.length);
+        /*
         for( var i = 0; i < MAP_CONF.resultsToMapJSON.results.length; i++) {
             var place = MAP_CONF.resultsToMapJSON.results[i];
 
@@ -304,6 +305,72 @@ function loadMap(MAP_CONF) {
                     }
                 });
         }
+
+        var wmsURL = MAP_CONF.biocacheServiceUrl + "/mapping/wms/places/reflect?q=" + MAP_CONF.query;
+        console.log('wmsURL = ' + wmsURL);
+
+        */
+        var fq = '';
+        if (MAP_CONF.filterQueryJSON > '') {
+            var htmlEntityDecoder = document.createElement('textarea');
+            var fqDecoded = [];
+            htmlEntityDecoder.innerHTML = MAP_CONF.filterQueryJSON;
+            var fqDecodedString = htmlEntityDecoder.value;
+            var fqJSON = JSON.parse(fqDecodedString);
+            console.log(fqJSON);
+            for (var i = 0; i < fqJSON.length; i++) {
+                if (fqJSON[i] != '') {
+                    fq += "&fq=" + encodeURIComponent(fqJSON[i]);
+                }
+            }
+            console.log(fq);
+        }
+        console.log("actual query used = " + MAP_CONF.actualQueryUsed);
+        var wmsURL = MAP_CONF.biocacheServiceUrl + "/mapping/wms/places/reflect?" + MAP_CONF.actualQueryUsed + fq;
+
+        if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
+            fqsArr = MAP_CONF.mapLayersFqs.split("|");
+            coloursArr = MAP_CONF.mapLayersColours.split("|");
+            var prmsLayer = [];
+            var placeLayer = [];
+            var htmlEntityDecoder = document.createElement('textarea');
+            for (i = 0; i < fqsArr.length; i++) {
+                prmsLayer[i] = $.extend({}, prms);
+                prmsLayer[i]["ENV"] = MAP_CONF.mapEnvOptions + ";color:" + coloursArr[i];
+                prmsLayer[i]["layers"] = "ALA:places";
+                prmsLayer[i]["format"] = "image/png";
+                prmsLayer[i]["transparent"] = true;
+                prmsLayer[i]["height"] = 256;
+                prmsLayer[i]["width"] = 256;
+                prmsLayer[i]["bgcolor"] = "0x000000";
+                prmsLayer[i]["outline"] = MAP_CONF.mapOutline;
+                prmsLayer[i]["GRIDDETAIL"] = 32;
+                prmsLayer[i]["STYLE"] = "opacity:0.8";
+                //htmlEntityDecoder.innerHTML = fqsArr[i];
+
+                var url = wmsURL +
+                    "&fq=" + encodeURIComponent(fqsArr[i]); //htmlEntityDecoder.value;
+
+                console.log("Mapping places: " + url);
+                placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
+                placeLayer[i].addTo(shapeLayers);
+            }
+        } else {
+            var shapeLayer = L.tileLayer.wms(wmsURL, {
+                layers: 'ALA:places',
+                format: 'image/png',
+                transparent: true,
+                height:256,
+                width:256,
+                bgcolor:"0x000000",
+                outline: true, // MAP_CONF.mapOutline,
+                ENV: MAP_CONF.mapEnvOptions, //TODO: color by no. recs
+                GRIDDETAIL: 32,
+                STYLE: "opacity:0.8" // for grid data
+            }).addTo(shapeLayers);
+        }
+
+
     } else if (MAP_CONF.mapType == 'show') {
     //single place map with possible criteria-based or colormode themeing
 
@@ -429,8 +496,17 @@ function loadMap(MAP_CONF) {
 
         //console.log("placeLayers:");
         //console.log(placeLayers);
-        overlays['places'] = placeLayers;
+        //overlays['places'] = placeLayers;
+        if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
+            labelsArr = MAP_CONF.mapLayersLabels.split("|");
+            for (i = 0; i < placeLayer.length; i++) {
+                overlays[labelsArr[i]] = placeLayer[i];
+            }
+        } else {
+            overlays['places'] = shapeLayer;
+        }
         L.control.layers(baseLayers, overlays).addTo(MAP_CONF.map);
+
     } else if (MAP_CONF.mapType == 'show') {
         var placeName = MAP_CONF.placeName;
         overlays[MAP_CONF.clName] = shapeLayer;
@@ -519,11 +595,20 @@ function loadMap(MAP_CONF) {
                 )
             );
 
-        for (var numOccsLog = 0; numOccsLog < 11; numOccsLog++) {
-            var numOccs = Math.floor(Math.exp(numOccsLog) - 1);
-            if (numOccs > 1000) numOccs = Math.round(numOccs / 100) * 100;
-            if (numOccs > 10) numOccs = Math.round(numOccs / 10) * 10; //prettier numbers
-            addLegendItem(numOccs.toString(), 0, 0, 0, greenColours[numOccsLog], false);
+        if (MAP_CONF.mapLayersLabels != '') {
+            //use predefined legend entries and colours
+            var mapLabelsArr = MAP_CONF.mapLayersLabels.split("|");
+            var mapColoursArr = MAP_CONF.mapLayersColours.split("|");
+            for (var i = 0; i < mapLabelsArr.length; i++) {
+                addLegendItem(mapLabelsArr[i], 0, 0, 0, mapColoursArr[i], false); //use rgbhex and full label provided
+            }
+        } else {
+            for (var numOccsLog = 0; numOccsLog < 11; numOccsLog++) {
+                var numOccs = Math.floor(Math.exp(numOccsLog) - 1);
+                if (numOccs > 1000) numOccs = Math.round(numOccs / 100) * 100;
+                if (numOccs > 10) numOccs = Math.round(numOccs / 10) * 10; //prettier numbers
+                addLegendItem(numOccs.toString(), 0, 0, 0, greenColours[numOccsLog], false);
+            }
         }
 
     } else if (MAP_CONF.mapType == 'show') {
@@ -664,32 +749,66 @@ function pointLookup(e) {
     MAP_CONF.map.spin(true);
 
 
-    $.ajax({
-        url: MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > ''? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) +')' : ''),
-        jsonp: "callback",
-        dataType: "jsonp",
-        timeout: 30000,
-        data: {
+    var spatialQueryUrl = "";
+    var searchLink = "";
+    var dataToPass = {
+        format: "json"
+    }
+
+    if (MAP_CONF.mapType == 'show') {
+        spatialQueryUrl = MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > '' ? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) + ')' : '');
+        dataToPass = {
             zoom: MAP_CONF.map.getZoom(),
             lat: e.latlng.wrap().lat,
             lon: e.latlng.wrap().lng,
             radius: radius,
             format: "json"
-        },
+        };
+    } else {
+        //radius is in km, convert crudely to decimal degrees where 1 degree ~ 100km NS, 70km EW
+        var radiusDD_NS = radius / 100.0;
+        var radiusDD_EW = radius / 70.0;
+        var latMin = e.latlng.wrap().lat - radiusDD_NS;
+        var latMax = e.latlng.wrap().lat + radiusDD_NS;
+        var lonMin = e.latlng.wrap().lng - radiusDD_EW;
+        var lonMax = e.latlng.wrap().lng + radiusDD_EW;
+        var actualQuery = MAP_CONF.actualQueryUsed;
+        spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + actualQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
+        searchLink = '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
+        //spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:[' + latMin.toString() + ' TO ' + latMax.toString() + ']&fq=longitude:[' + lonMin.toString() + ' TO ' + lonMax.toString() + ']';
+    }
+    console.log("spatialQueryUrl = " + spatialQueryUrl);
+    $.ajax({
+        url: spatialQueryUrl,
+        jsonp: "callback",
+        dataType: (MAP_CONF.mapType == "show"? "jsonp" : "json"),
+        timeout: 30000,
+        data: dataToPass,
         success: function (response) {
             MAP_CONF.map.spin(false);
 
-            if (response.occurrences && response.occurrences.length > 0) {
+            if (MAP_CONF.mapType == "show") {
 
-                MAP_CONF.recordList = response.occurrences; // store the list of record uuids
-                MAP_CONF.popupLatlng = e.latlng.wrap(); // store the coordinates of the mouse click for the popup
+                if (response.occurrences && response.occurrences.length > 0) {
 
-                // Load the first record details into popup
-                insertRecordInfo(0);
+                    MAP_CONF.recordList = response.occurrences; // store the list of record uuids
+                    MAP_CONF.popupLatlng = e.latlng.wrap(); // store the coordinates of the mouse click for the popup
+
+                    // Load the first record details into popup
+                    insertRecordInfo(0);
+                }
+            } else {
+                if (response.searchResults && response.searchResults.results && response.searchResults.results.length) {
+                    MAP_CONF.recordList = response.searchResults.results;
+                    MAP_CONF.popupLatlng = e.latlng.wrap();
+                    insertPlaceInfo(0, searchLink);
+                }
+                console.log(response);
             }
         },
         error: function (x, t, m) {
             MAP_CONF.map.spin(false);
+            console.log("Error getting point details from WS call");
         },
 
     });
@@ -753,6 +872,50 @@ function insertRecordInfo(recordIndex) {
         }
     });
 
+}
+
+function insertPlaceInfo(placeIndex, searchLink) {
+    console.log("insertPlaceInfo", placeIndex, MAP_CONF.recordList);
+    var place = MAP_CONF.recordList[placeIndex];
+    var $popupClone = $('.popupPlaceTemplate').clone();
+
+    $popupClone.find('.placeName').html(place['name']);
+    $popupClone.find('.placeLink a').attr('href', "/places/" + place['id']);
+
+    MAP_CONF.map.spin(true);
+
+    if (MAP_CONF.recordList.length > 1) {
+        // populate popup header
+        $popupClone.find('.multiPlaceHeader').show();
+        $popupClone.find('.currentPlace').html(placeIndex + 1);
+        $popupClone.find('.totalplaces').html(MAP_CONF.recordList.length.toString().replace(/100/, '100+'));
+        $popupClone.find('a.viewAllPlaces').attr('href', searchLink);
+        // populate popup footer
+        $popupClone.find('.multiPlaceFooter').show();
+        if (placeIndex < MAP_CONF.recordList.length - 1) {
+            $popupClone.find('.nextPlace a').attr('onClick', 'insertPlaceInfo('+(placeIndex + 1)+',"' + searchLink + '"); return false;');
+            $popupClone.find('.nextPlace a').removeClass('disabled');
+        }
+        if (placeIndex > 0) {
+            $popupClone.find('.previousPlace a').attr('onClick', 'insertPlaceInfo('+(placeIndex - 1)+',"' + searchLink + '"); return false;');
+            $popupClone.find('.previousPlace a').removeClass('disabled');
+        }
+    }
+
+    MAP_CONF.popup.setContent($popupClone.html()); // push HTML into popup content
+    MAP_CONF.popup.openOn(MAP_CONF.map);
+
+    // Get the current record details
+
+    var jsonUrl = "place-stats/" + place['id'] ;
+    $.getJSON(jsonUrl, function(data) {
+        var displayHtml = "Occurrences: " + (data.occurrenceCount? data.occurrenceCount.toString() : '0') + '<br/>';
+        displayHtml += "Species: " + (data.speciesCount? data.speciesCount.toString() : '0');
+        console.log(displayHtml);
+        $('#placeSummaryStats').html( displayHtml );
+    });
+
+    MAP_CONF.map.spin(false);
 }
 
 function formatPopupHtml(record) {

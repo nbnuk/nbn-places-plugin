@@ -34,7 +34,8 @@
             placesUrl: "${grailsApplication.config.places.baseURL}",
             biocacheUrl: "${grailsApplication.config.biocache.baseURL}",
             biocacheServicesUrl: "${grailsApplication.config.biocacheService.baseURL}",
-            biocacheQueryContext: "${grailsApplication.config?.biocacheService.queryContext ?: ''}"
+            biocacheQueryContext: "${grailsApplication.config?.biocacheService.queryContext ?: ''}",
+            filterQueryJSON: "${filterQueryJSON}"
         }
     </asset:script>
     <g:if test="${grailsApplication.config.search?.mapResults == 'true'}">
@@ -424,7 +425,25 @@
         </ol>
     </div>
 </div>
-
+<div class="hide">
+    <div class="popupPlaceTemplate">
+        <div class="multiPlaceHeader">
+            <g:message code="search.map.viewing" default="Viewing"/> <span class="currentPlace"></span> <g:message code="search.map.of" default="of"/>
+            <span class="totalplaces"></span> <g:message code="search.map.places" default="places"/>
+        &nbsp;&nbsp;<i class="glyphicon glyphicon-share-alt"></i> <a href="#" class="btn+btn-xs viewAllPlaces"><g:message code="search.map.viewAllPlaces" default="view all places"/></a>
+        </div>
+        <div class="placeName"></div>
+        <div class="placeSummary" id="placeSummaryStats">
+        </div>
+        <div class="multiPlaceFooter">
+            <span class="previousPlace "><a href="#" class="btn btn-default btn-xs disabled" onClick="return false;"><g:message code="search.map.popup.prev" default="&lt; Prev"/></a></span>
+            <span class="nextPlace "><a href="#" class="btn btn-default btn-xs disabled" onClick="return false;"><g:message code="search.map.popup.next" default="Next &gt;"/></a></span>
+        </div>
+        <div class="placeLink">
+            <a href="#" class="btn btn-default btn-xs"><g:message code="search.map.popup.viewPlace" default="View place"/></a>
+        </div>
+    </div>
+</div>
 
 <asset:script type="text/javascript">
 var SHOW_CONF = {
@@ -446,7 +465,7 @@ var SHOW_CONF = {
 var MAP_CONF = {
     mapType:                    "search",
     biocacheServiceUrl:         "${grailsApplication.config.biocacheService.baseURL}",
-
+    bieServiceUrl:              "${grailsApplication.config.bieService.baseURL}",
     defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude ?: 0},
     defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude ?: 0},
     defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel ?: 5},
@@ -460,18 +479,21 @@ var MAP_CONF = {
     mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
     additionalMapFilter:        "${raw(grailsApplication.config?.show?.additionalMapFilter ?: '')}",
     map:                        null,
-    mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},
-    mapEnvOptions:              "name:circle;size:4;opacity:0.8",
-    mapEnvLegendTitle:          "${grailsApplication.config.map.env?.legendtitle?:''}", //not used here
-    mapEnvLegendHideMax:        "${grailsApplication.config.map.env?.legendhidemaxrange?:false}", //not used here
-    mapLayersLabels:            "${grailsApplication.config.map.layers?.labels?:''}", //not used here
-    mapLayersColours:           "${grailsApplication.config.map.layers?.colours?:''}", //not used here
-    mapLayersFqs:               "${grailsApplication.config.map?.layers?.fqs ?: ''}",
+    mapOutline:                 ${grailsApplication.config.search?.map?.outline ?: 'false'},
+    mapEnvOptions:              "${grailsApplication.config.search?.map?.env?.options ?: 'name:circle;size:4;opacity:0.8'}",
+    mapEnvLegendTitle:          "${grailsApplication.config.search?.map?.env?.legendtitle?:''}",
+    mapEnvLegendHideMax:        "${grailsApplication.config.search?.map?.env?.legendhidemaxrange?:false}",
+    mapLayersLabels:            "${grailsApplication.config.search?.map?.layers?.labels?:''}",
+    mapLayersColours:           "${grailsApplication.config.search?.map?.layers?.colours?:''}",
+    mapLayersFqs:               "${grailsApplication.config.search?.map?.layers?.fqs?: ''}",
     showResultsMap:             ${grailsApplication.config?.search?.mapResults == 'true'},
     mapPresenceAndAbsence:      ${grailsApplication.config?.search?.mapPresenceAndAbsence == 'true'},
-    resultsToMap:               "${searchResults}",
+    resultsToMap:               "${searchResults}", //TODO: fix fitResultsMapToBounds
     resultsToMapJSON:           null,
-    presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}"
+    presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}",
+    query:                      SEARCH_CONF.query,
+    filterQueryJSON:            SEARCH_CONF.filterQueryJSON,
+    actualQueryUsed:            "${actualQueryUsed}"
 };
 
 <g:if test="${(grailsApplication.config.search?.mapResults == 'true') && (searchResults.totalRecords > 0)}">

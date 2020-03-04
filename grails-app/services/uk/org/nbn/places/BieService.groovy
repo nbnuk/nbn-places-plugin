@@ -10,6 +10,27 @@ class BieService {
     def webService
     def grailsApplication
 
+    def queryUsedForResults = ""
+
+    def searchBieOnFullPlaceName(wsQueryUrl, strName) {
+        def queryUrlWithoutQ = wsQueryUrl.replace('?q=' + strName, "?q=*:*")
+        def matchAgainst = 'bbg_name_s'
+        def toMatch = strName.replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
+        def matchFQ = matchAgainst + ":%22" + toMatch + "%22"
+        def queryUrlExactMatch = queryUrlWithoutQ + "&fq=" + matchFQ
+
+        def acceptableResults = JSON.parse("{}")
+
+        //note: at present this is case-sensitive: need to amend SOLR schema to fix this
+        def json = webService.get(queryUrlExactMatch)
+        def resJson = JSON.parse(json)
+        def resultsInThisPage = resJson.searchResults?.results?.size() ?: 0
+        if (resultsInThisPage > 0) {
+            queryUsedForResults = "fq=" + matchFQ
+            acceptableResults = resJson
+        }
+        acceptableResults
+    }
 
     def searchBie(SearchRequestParamsDTO requestObj) {
 
@@ -19,17 +40,66 @@ class BieService {
 
         //add a query context for BIE - to reduce places to a subset
         if (grailsApplication.config.bieService.queryContext) {
-
             queryUrl = queryUrl + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.bieService.queryContext).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
             /* URLEncoder.encode: encoding &,= and : breaks these tokens for SOLR */
         }
-
+        def queryParam = URIUtil.encodeWithinQuery(requestObj.q)
 
         queryUrl = queryUrl.replace('"','%22')
         log.info("queryUrlBie = " + queryUrl)
 
-        def json = webService.get(queryUrl)
-        JSON.parse(json)
+        def haveAcceptableResults = false
+        def acceptableResults = JSON.parse("{}")
+        def resultsInThisPage = 0
+        queryUsedForResults = "q=" + queryParam
+
+        //try exact match
+        if (! haveAcceptableResults && queryParam != "" && queryParam != "*%3A*") {
+            acceptableResults = searchBieOnFullPlaceName(queryUrl, queryParam)
+            if (acceptableResults?.searchResults) haveAcceptableResults = true
+        }
+
+        //try match on all (non-stop) words
+        if (! haveAcceptableResults && queryParam != "" && queryParam != "*%3A*") {
+            //match on all terms, but remove stopwords and '&'
+            //these are aligned with the SOLR schema stopwords.txt
+            //HACK: should be retrieve dynamically, but I don't know how to do this
+            def stopWords = [
+                    "a","an","and","are","as","at","be","but","by","for","if","in","into","is","it","no","not","of","on","or","s","such","t","that",
+                    "the","their","then","there","these","they","this","to","was","will","with"
+            ]
+            def qryCleanWords = requestObj.getQ().split().flatten()
+            qryCleanWords.removeIf{ stopWords.contains(it.toLowerCase()) }
+            qryCleanWords.removeAll("&")
+            def qryClean = qryCleanWords.join(" ")
+            requestObj.setQ(qryClean)
+            queryUrl = grailsApplication.config.bieService.baseURL + "/search?" + requestObj.getQueryString().replaceAll("%20", "%20AND%20") +
+                    "&facets=" + grailsApplication.config.search?.facets
+
+            //add a query context for BIE - to reduce places to a subset
+            if (grailsApplication.config.bieService.queryContext) {
+                queryUrl = queryUrl + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.bieService.queryContext).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
+                /* URLEncoder.encode: encoding &,= and : breaks these tokens for SOLR */
+            }
+            queryUrl = queryUrl.replaceAll('"','%22')
+            log.info("queryUrlBie all terms = " + queryUrl)
+            def json = webService.get(queryUrl)
+            acceptableResults = JSON.parse(json)
+            if (acceptableResults?.searchResults) {
+                queryUsedForResults = "q=" + URIUtil.encodeWithinQuery(qryClean.replaceAll(" ", " AND "))
+                haveAcceptableResults = true
+            }
+        }
+
+        //default search
+        if (! haveAcceptableResults) {
+            def json = webService.get(queryUrl)
+            def resJson = JSON.parse(json)
+            //TODO: need to change sort order to best-match desc maybe?
+            acceptableResults = resJson
+            haveAcceptableResults = true //well, maybe
+        }
+        [acceptableResults, queryUsedForResults]
     }
 
 
@@ -156,7 +226,7 @@ class BieService {
 
         //TODO: need to set reasonable flimit and implement paging?
 
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&stats=%7B!tag=piv1%20max=true%7Dyear';
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':%22' + java.net.URLEncoder.encode(clName, "UTF-8") + '%22&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&stats=%7B!tag=piv1%20max=true%7Dyear';
 
         url = url + getUrlFqForRecFilter()
         log.info("getTaxonListForPlace with stats before paging = " + url);
@@ -175,7 +245,7 @@ class BieService {
             }
             if (tryOldWSWithoutStats) {
                 //try normal query URL without stats
-                url = grailsApplication.config.biocacheService.baseURL + '/occurrence/facets?facets=names_and_lsid&fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"&fsort=index&flimit=-1';
+                url = grailsApplication.config.biocacheService.baseURL + '/occurrence/facets?facets=names_and_lsid&fq=' + cl + ':%22' + java.net.URLEncoder.encode(clName, "UTF-8") + '%22&fsort=index&flimit=-1';
                 url = url + getUrlFqForRecFilter()
                 //log.info("getTaxonListForPlace old style = " + url);
                 json = webService.get(url)
@@ -197,12 +267,12 @@ class BieService {
 
     def getOccurrenceCountsForPlace(cl, clName, presenceOrAbsence, overrideAdditionalMapFilter) {
 
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrences/search?pageSize=0&fq=' + cl + ':"' + java.net.URLEncoder.encode(clName, "UTF-8") + '"'
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrences/search?pageSize=0&fq=' + cl + ':%22' + java.net.URLEncoder.encode(clName, "UTF-8") + '%22'
 
         url = url + getUrlFqForRecFilter()
 
         if (!overrideAdditionalMapFilter) {
-            if (grailsApplication.config?.show?.additionalMapFilter) {
+            if ((grailsApplication.config?.show?.additionalMapFilter?: '') != '') {
                 url = url + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.show?.additionalMapFilter).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
             }
         }
@@ -212,6 +282,7 @@ class BieService {
         } else if (presenceOrAbsence == 'absence') {
             url = url + "&fq=occurrence_status:absent"
         }
+        log.info "WS url = " + url
         def json = webService.get(url)
         try {
             def response = JSON.parse(json)

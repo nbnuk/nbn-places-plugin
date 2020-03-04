@@ -317,21 +317,21 @@ html, body {height:100%;}
 }
 
 
-.multiRecordHeader {
+.multiRecordHeader, .multiPlaceHeader {
     font-weight: bold;
     min-width: 260px;
 }
 
-.recordSummary {
+.recordSummary, .placeSummary {
     min-width: 260px;
 }
 
-.recordLink, .multiRecordFooter {
+.recordLink, .multiRecordFooter, .placeLink, .multiPlaceFooter {
     width: 50%;
     margin-top: 5px;
 }
 
-.multiRecordFooter {
+.multiRecordFooter, .multiPlaceFooter {
     float: right;
     text-align: right;
 }
@@ -384,4 +384,8 @@ html, body {height:100%;}
     -webkit-border-radius:50%;
     width:12px;
     display: inline-block;
+}
+
+.leaflet-popup-content .placeName {
+    font-weight: bold;
 }
