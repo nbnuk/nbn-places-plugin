@@ -175,7 +175,7 @@ class PlacesController {
         }
 
         if (searchResults instanceof JSONObject && searchResults.has("error")) {
-            log.error "Error requesting region concept object: " + searchResults.error
+            log.error "Error requesting place concept object: " + searchResults.error
             render(view: '../error', model: [message: searchResults.error])
         } else {
 

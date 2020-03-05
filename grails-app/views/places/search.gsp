@@ -258,7 +258,6 @@
                                     <option value="20" ${(params.rows == '20' || (!params.rows && grailsApplication.config?.search?.defaultRows == '20')) ? "selected=\"selected\"" : ""}>20</option>
                                     <option value="50" ${(params.rows == '50' || (!params.rows && grailsApplication.config?.search?.defaultRows == '50')) ? "selected=\"selected\"" : ""}>50</option>
                                     <option value="100" ${(params.rows == '100' || (!params.rows && grailsApplication.config?.search?.defaultRows == '100')) ? "selected=\"selected\"" : ""}>100</option>
-                                    <option value="1000" ${(params.rows == '1000' || (!params.rows && grailsApplication.config?.search?.defaultRows == '1000')) ? "selected=\"selected\"" : ""}>1000</option>
                                 </select>
                             </div>
 
@@ -330,42 +329,6 @@
                 <div id="tabs-2" class="tab-content">
 
                     <div class="result-options">
-                        <span class="record-cursor-details">Showing <b>${(params.offset ?: 0).toInteger() + 1} - ${Math.min((params.offset ?: 0).toInteger() + (params.rows ?: (grailsApplication.config?.search?.defaultRows ?: 10)).toInteger(), (searchResults?.totalRecords ?: 0))}</b> of <b>${searchResults?.totalRecords}</b> results</span>
-
-                        <form class="form-inline">
-                            <div class="form-group">
-                                <label for="per-page">Results per page</label>
-                                <select class="form-control input-sm" id="per-page2" name="per-page2">
-                                    <option value="10" ${(params.rows == '10' || (!params.rows && grailsApplication.config?.search?.defaultRows == '10')) ? "selected=\"selected\"" : ""}>10</option>
-                                    <option value="20" ${(params.rows == '20' || (!params.rows && grailsApplication.config?.search?.defaultRows == '20')) ? "selected=\"selected\"" : ""}>20</option>
-                                    <option value="50" ${(params.rows == '50' || (!params.rows && grailsApplication.config?.search?.defaultRows == '50')) ? "selected=\"selected\"" : ""}>50</option>
-                                    <option value="100" ${(params.rows == '100' || (!params.rows && grailsApplication.config?.search?.defaultRows == '100')) ? "selected=\"selected\"" : ""}>100</option>
-                                    <option value="1000" ${(params.rows == '1000' || (!params.rows && grailsApplication.config?.search?.defaultRows == '1000')) ? "selected=\"selected\"" : ""}>1000</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="sort-by">Sort by</label>
-                                <select class="form-control input-sm" id="sort-by2" name="sort-by2">
-                                    <option value="score" ${(params.sortField == 'score' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'score')) ? "selected=\"selected\"" : ""}>best match</option>
-                                    <option value="name" ${(params.sortField == 'name' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'name')) ? "selected=\"selected\"" : ""}>name</option>
-                                    <option value="parish_leg_s" ${(params.sortField == 'parish_leg_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'parish_leg_s')) ? "selected=\"selected\"" : ""}>parish</option>
-                                    <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
-                                    <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
-                                    <option value="occurrenceCount" ${(params.sortField == 'occurrenceCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'occurrenceCount')) ? "selected=\"selected\"" : ""}>records</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="sort-order">Sort order</label>
-                                <select class="form-control input-sm" id="sort-order2" name="sort-order2">
-                                    <option value="asc" ${(params.dir == 'asc' || (!params.dir && grailsApplication.config?.search?.defaultSortOrder == 'asc')) ? "selected=\"selected\"" : ""}>ascending</option>
-                                    <option value="desc" ${(params.dir == 'desc' || (!params.dir && grailsApplication.config?.search?.defaultSortOrder == 'desc') || (!params.dir && !grailsApplication.config?.search?.defaultSortOrder)) ? "selected=\"selected\"" : ""}>descending</option>
-                                </select>
-                            </div>
-
-                        </form>
-
 
                     <!-- </div> result-options -->
 
@@ -396,13 +359,6 @@
                                 </div>
                             </div>
 
-                        </div>
-
-                       <div id="paginationTab2">
-                            <tb:paginate total="${searchResults?.totalRecords}"
-                                     max="${params.rows ?: (grailsApplication.config?.search?.defaultRows?:10)}"
-                                     action="search"
-                                     params="${[q: params.q, fq: params.fq, dir: (params.dir ?: (grailsApplication.config?.search?.defaultSortOrder?:'desc')), sortField: (params.sortField ?: (grailsApplication.config?.search?.defaultSortField?:'score')), rows: (params.rows ?: (grailsApplication.config?.search?.defaultRows?:10))]}"/>
                         </div>
 
                     </div>

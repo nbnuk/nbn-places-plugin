@@ -85,7 +85,7 @@ class BieService {
             log.info("queryUrlBie all terms = " + queryUrl)
             def json = webService.get(queryUrl)
             acceptableResults = JSON.parse(json)
-            if (acceptableResults?.searchResults) {
+            if ((acceptableResults?.searchResults?.results?.size() ?: 0) > 0) {
                 queryUsedForResults = "q=" + URIUtil.encodeWithinQuery(qryClean.replaceAll(" ", " AND "))
                 haveAcceptableResults = true
             }

@@ -19,7 +19,6 @@ var colours = [/* colorUtil */ "8B0000", "FF0000", "CD5C5C", "E9967A", "8B4513",
 ];
 
 //supports record counts up to ~170 million (as natural log scale)
-//var greenColours = [ "FEFEFE", "B3FFB3", "99FF99", "80FF80", "66FF66", "4DFF4D", "33FF33", "1AFF1A", "00FF00", "00E600", "00CC00", "00B300", "009900", "008000", "006600", "004D00", "003300", "001A00" ];
 var greenColours = [ "FEFEFE", "B3FFB3", "99FF99", "80FF80", "4DFF4D", "1AFF1A", "00E600", "00B300", "008000", "004D00", "003300", "001F00", "000500" ];
 
 var placeHtmlStyles = "background-color: #[greenColourMatched];";
@@ -202,6 +201,7 @@ var placeLayers = new L.LayerGroup();
 var shapeLayers = new L.LayerGroup();
 
 function fitResultsMapToBounds(MAP_CONF) {
+    //TODO: at the moment this fits the search map to the first 50 places in the results. This could be improved.
     var lat_min = null, lat_max = null, lon_min = null, lon_max = null;
     var changed = false;
 
@@ -325,7 +325,7 @@ function loadMap(MAP_CONF) {
             }
             console.log(fq);
         }
-        console.log("actual query used = " + MAP_CONF.actualQueryUsed);
+        //console.log("actual query used = " + MAP_CONF.actualQueryUsed);
         var wmsURL = MAP_CONF.biocacheServiceUrl + "/mapping/wms/places/reflect?" + MAP_CONF.actualQueryUsed + fq;
 
         if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
@@ -333,20 +333,11 @@ function loadMap(MAP_CONF) {
             coloursArr = MAP_CONF.mapLayersColours.split("|");
             var prmsLayer = [];
             var placeLayer = [];
-            var htmlEntityDecoder = document.createElement('textarea');
             for (i = 0; i < fqsArr.length; i++) {
                 prmsLayer[i] = $.extend({}, prms);
                 prmsLayer[i]["ENV"] = MAP_CONF.mapEnvOptions + ";color:" + coloursArr[i];
                 prmsLayer[i]["layers"] = "ALA:places";
-                prmsLayer[i]["format"] = "image/png";
-                prmsLayer[i]["transparent"] = true;
-                prmsLayer[i]["height"] = 256;
-                prmsLayer[i]["width"] = 256;
-                prmsLayer[i]["bgcolor"] = "0x000000";
-                prmsLayer[i]["outline"] = MAP_CONF.mapOutline;
-                prmsLayer[i]["GRIDDETAIL"] = 32;
                 prmsLayer[i]["STYLE"] = "opacity:0.8";
-                //htmlEntityDecoder.innerHTML = fqsArr[i];
 
                 var url = wmsURL +
                     "&fq=" + encodeURIComponent(fqsArr[i]); //htmlEntityDecoder.value;
@@ -383,7 +374,7 @@ function loadMap(MAP_CONF) {
             outline: true,
             opacity: 0.25,
             styles: 'polygon',
-            maxZoom: 18,
+            maxZoom: 19,
             minZoom: 0,
             continuousWorld: true
         }).addTo(shapeLayers);
@@ -426,7 +417,10 @@ function loadMap(MAP_CONF) {
             placeLayer.addTo(placeLayers);
         }
 
-
+        console.log("shapeLayers:");
+        console.log(shapeLayers);
+        console.log("placeLayers:");
+        console.log(placeLayers);
     }
 
     var ColourByControl = L.Control.extend({
@@ -467,7 +461,7 @@ function loadMap(MAP_CONF) {
         subdomains: (MAP_CONF.defaultMapBaselayer != 'Minimal'? ['mt0','mt1','mt2','mt3'] : 'abcd'),
         mapid: MAP_CONF.defaultMapId,
         token: MAP_CONF.defaultMapToken,
-        maxZoom: (MAP_CONF.defaultMapBaselayer != 'Minimal'? 20 : 19)
+        maxZoom: (MAP_CONF.defaultMapBaselayer != 'Minimal'? 19 : 18)
     });
 
     defaultBaseLayer.addTo(MAP_CONF.map);
@@ -476,7 +470,7 @@ function loadMap(MAP_CONF) {
         "Minimal" : new L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
-            maxZoom: 19
+            maxZoom: 18
         }),
         //"Minimal": new L.tileLayer("",{}),
         "Road" :  new L.Google('ROADMAP'),
@@ -509,11 +503,11 @@ function loadMap(MAP_CONF) {
 
     } else if (MAP_CONF.mapType == 'show') {
         var placeName = MAP_CONF.placeName;
-        overlays[MAP_CONF.clName] = shapeLayer;
+        overlays[MAP_CONF.placeName] = shapeLayer;
         if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
             labelsArr = MAP_CONF.mapLayersLabels.split("|");
             for (i = 0; i < placeLayer.length; i++) {
-                overlays[placeName + ": " + labelsArr[i]] = placeLayer[i];
+                overlays['Occurrences' + ": " + labelsArr[i]] = placeLayer[i];
             }
             L.control.layers(baseLayers, overlays).addTo(MAP_CONF.map);
         } else {
@@ -900,6 +894,9 @@ function insertPlaceInfo(placeIndex, searchLink) {
             $popupClone.find('.previousPlace a').attr('onClick', 'insertPlaceInfo('+(placeIndex - 1)+',"' + searchLink + '"); return false;');
             $popupClone.find('.previousPlace a').removeClass('disabled');
         }
+    } else {
+        $popupClone.find('.nextPlace a').addClass('hidden');
+        $popupClone.find('.previousPlace a').addClass('hidden');
     }
 
     MAP_CONF.popup.setContent($popupClone.html()); // push HTML into popup content

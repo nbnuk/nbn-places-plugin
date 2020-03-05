@@ -27,6 +27,7 @@
 <g:set bean="authService" var="authService"></g:set>
 <g:set var="imageViewerType" value="${grailsApplication.config.imageViewerType?:'LEAFLET'}"></g:set>
 <g:set var="shape_filter" value="${cl + ':"' + clName + '"'}"></g:set>
+<g:set var="placeDetails" value="${placeDetails}"></g:set>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,7 +211,7 @@
         collectoryUrl:      "${grailsApplication.config.collectory.baseURL}",
         imageServiceBaseUrl:"${grailsApplication.config.image.baseURL}",
         guid:               "${guid}",
-        placeName:          "${placeDetails?.name ?: ''}",
+        placeName:          "${placeDetails?.bbg_name_s ?: ''}",
         preferredImageId:   "TODO_img",
         serverName:         "${grailsApplication.config.grails.serverURL}",
         bieUrl:             "${grailsApplication.config.bie.baseURL}",
@@ -278,7 +279,8 @@ var MAP_CONF = {
         guid:                       "${guid}",
         query:                     "?q=" + "${cl}:\"${clName}\"",
         queryDisplayString:        "${clName}",
-        removeFqs:                 ""
+        removeFqs:                 "",
+        placeName:          "${placeDetails?.bbg_name_s ?: ''}",
 }
 
 
