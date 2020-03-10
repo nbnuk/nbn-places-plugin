@@ -374,7 +374,7 @@ function loadMap(MAP_CONF) {
             outline: true,
             opacity: 0.25,
             styles: 'polygon',
-            maxZoom: 19,
+            maxZoom: 18,
             minZoom: 0,
             continuousWorld: true
         }).addTo(shapeLayers);
@@ -417,10 +417,10 @@ function loadMap(MAP_CONF) {
             placeLayer.addTo(placeLayers);
         }
 
-        console.log("shapeLayers:");
-        console.log(shapeLayers);
-        console.log("placeLayers:");
-        console.log(placeLayers);
+        //console.log("shapeLayers:");
+        //console.log(shapeLayers);
+        //console.log("placeLayers:");
+        //console.log(placeLayers);
     }
 
     var ColourByControl = L.Control.extend({
@@ -461,7 +461,7 @@ function loadMap(MAP_CONF) {
         subdomains: (MAP_CONF.defaultMapBaselayer != 'Minimal'? ['mt0','mt1','mt2','mt3'] : 'abcd'),
         mapid: MAP_CONF.defaultMapId,
         token: MAP_CONF.defaultMapToken,
-        maxZoom: (MAP_CONF.defaultMapBaselayer != 'Minimal'? 19 : 18)
+        maxZoom: (MAP_CONF.defaultMapBaselayer != 'Minimal'? 18 : 18)
     });
 
     defaultBaseLayer.addTo(MAP_CONF.map);

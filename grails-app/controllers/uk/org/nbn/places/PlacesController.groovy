@@ -130,6 +130,7 @@ class PlacesController {
         def searchResultsArr = bieService.searchBie(requestObj)
         def searchResults = searchResultsArr[0]
         def searchResultsQuery = searchResultsArr[1]
+        log.info("Actual query used: " + searchResultsQuery)
         //revert to below (which is expensive) if biocacheService.queryContext= is not empty, since then cannot use overall place occurrence counts any more
         def searchResultsNamesAndRecCounts
         if ((grailsApplication.config.biocacheService?.queryContext ?: "") != "") {

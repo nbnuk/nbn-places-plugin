@@ -45,7 +45,7 @@ class BieService {
         }
         def queryParam = URIUtil.encodeWithinQuery(requestObj.q)
 
-        queryUrl = queryUrl.replace('"','%22')
+        queryUrl = queryUrl.replaceAll('"','%22').replaceAll("'","%27")
         log.info("queryUrlBie = " + queryUrl)
 
         def haveAcceptableResults = false
@@ -71,9 +71,24 @@ class BieService {
             def qryCleanWords = requestObj.getQ().split().flatten()
             qryCleanWords.removeIf{ stopWords.contains(it.toLowerCase()) }
             qryCleanWords.removeAll("&")
-            def qryClean = qryCleanWords.join(" ")
+            def qryClean = qryCleanWords.join(" AND ")
+
             requestObj.setQ(qryClean)
-            queryUrl = grailsApplication.config.bieService.baseURL + "/search?" + requestObj.getQueryString().replaceAll("%20", "%20AND%20") +
+            /* TODO: fix for stemming move q queries to fq:bbg_name_s queries
+            requestObj.setQ("*:*")
+            def fqs = requestObj.getFq()
+            if (fqs) {
+                if (fq.getClass().metaClass.getMetaMethod("join", String)) {
+                    fqs << "bbg_name_s:" + qryClean
+                } else {
+                    def fqlist = [fqs, "bbg_name_s:" + qryClean]
+                    fqs = fqlist
+                }
+            } else {
+                fqs = ["bbg_name_s:" + qryClean]
+            }
+            requestObj.setFq(fqs) */
+            queryUrl = grailsApplication.config.bieService.baseURL + "/search?" + requestObj.getQueryString() + //.replaceAll("%20", "%20AND%20") +
                     "&facets=" + grailsApplication.config.search?.facets
 
             //add a query context for BIE - to reduce places to a subset
@@ -81,12 +96,13 @@ class BieService {
                 queryUrl = queryUrl + "&" + URIUtil.encodeWithinQuery(grailsApplication.config.bieService.queryContext).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":")
                 /* URLEncoder.encode: encoding &,= and : breaks these tokens for SOLR */
             }
-            queryUrl = queryUrl.replaceAll('"','%22')
+            queryUrl = queryUrl.replaceAll('"','%22').replaceAll("'","%27")
             log.info("queryUrlBie all terms = " + queryUrl)
             def json = webService.get(queryUrl)
             acceptableResults = JSON.parse(json)
             if ((acceptableResults?.searchResults?.results?.size() ?: 0) > 0) {
-                queryUsedForResults = "q=" + URIUtil.encodeWithinQuery(qryClean.replaceAll(" ", " AND "))
+                queryUsedForResults = "q=" + URIUtil.encodeWithinQuery(qryClean).replaceAll('"','%22').replaceAll("'","%27")
+                log.info("queryUsedForResults = " + queryUsedForResults)
                 haveAcceptableResults = true
             }
         }

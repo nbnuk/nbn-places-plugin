@@ -324,12 +324,12 @@ function downloadMapNow(){
     var sw =  bounds.getSouthWest();
     var extents = sw.lng + ',' + sw.lat + ',' + ne.lng + ','+ ne.lat;
 
-    var baseMapValue = 'world'; //$('#baseMap').val();
-    var baseLayer = "London"; //TODO to configure
+    var baseMapValue = $('#baseMap').val();
+    var baseLayer = "";
     var baseMap = "";
-    if (baseMapValue.startsWith("basemap")){
+    if (baseMapValue.startsWith("basemap.")){
         baseMap = baseMapValue.substring(8);
-    } else if (baseMapValue.startsWith("baselayer")){
+    } else if (baseMapValue.startsWith("baselayer.")){
         baseLayer = baseMapValue.substring(10);
     }
     var shapeFilterDecoded = $('<textarea />').html('${shape_filter}').text();
