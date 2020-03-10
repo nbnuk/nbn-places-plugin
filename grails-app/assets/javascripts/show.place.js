@@ -68,50 +68,56 @@ function loadDataProviders(){
     var uiUrl = SHOW_CONF.biocacheUrl  +
         '/occurrences/search?q=' + mapShapeFilterUnencoded /* SHOW_CONF.shape_filter */;
 
+     //$.getJSON(url, function(data){
 
-    $.getJSON(url, function(data){
+    $.ajax({
+        url: url,
+        jsonp: "callback",
+        dataType: "jsonp",
+        success: function (data) {
 
-        if(data.totalRecords > 0) {
+            if (data.totalRecords > 0) {
 
-            var datasetCount = data.facetResults[0].fieldResult.length;
+                var datasetCount = data.facetResults[0].fieldResult.length;
 
-            //exclude the "Unknown facet value"
-            if(data.facetResults[0].fieldResult[datasetCount - 1].label == "Unknown"){
-                datasetCount = datasetCount - 1;
-            }
-
-            if(datasetCount == 1){
-                $('.datasetLabel').html("dataset has");
-            }
-
-            $('.datasetCount').html(datasetCount);
-            $.each(data.facetResults[0].fieldResult, function (idx, facetValue) {
-                //console.log(data.facetResults[0].fieldResult);
-                if(facetValue.count > 0){
-
-                    var uid = facetValue.fq.replace(/data_resource_uid:/, '').replace(/[\\"]*/, '').replace(/[\\"]/, '');
-                    var dataResourceUrl =  SHOW_CONF.collectoryUrl + "/public/show/" + uid;
-                    var tableRow = "<tr><td><a href='" + dataResourceUrl + "'><span class='data-provider-name'>" + facetValue.label + "</span></a>";
-
-                    //console.log(uid);
-                    $.getJSON(SHOW_CONF.collectoryUrl + "/ws/dataResource/" + uid, function(collectoryData) {
-
-
-                        if(collectoryData.provider){
-                            tableRow += "<br/><small><a href='" + SHOW_CONF.collectoryUrl + '/public/show/' + uid + "'>" + collectoryData.provider.name + "</a></small>";
-                        }
-                        tableRow += "</td>";
-                        tableRow += "<td>" + collectoryData.licenseType + "</td>";
-
-                        var queryUrl = uiUrl + "&fq=" + facetValue.fq;
-                        tableRow += "</td><td><a href='" + queryUrl + "'><span class='record-count'>" + facetValue.count + "</span></a></td>"
-                        tableRow += "</tr>";
-                        $('#data-providers-list tbody').append(tableRow);
-                    });
+                //exclude the "Unknown facet value"
+                if (data.facetResults[0].fieldResult[datasetCount - 1].label == "Unknown") {
+                    datasetCount = datasetCount - 1;
                 }
-            });
-        } else {
-            $('.datasetLabel').html("No datasets have");
+
+                if (datasetCount == 1) {
+                    $('.datasetLabel').html("dataset has");
+                }
+
+                $('.datasetCount').html(datasetCount);
+                $.each(data.facetResults[0].fieldResult, function (idx, facetValue) {
+                    //console.log(data.facetResults[0].fieldResult);
+                    if (facetValue.count > 0) {
+
+                        var uid = facetValue.fq.replace(/data_resource_uid:/, '').replace(/[\\"]*/, '').replace(/[\\"]/, '');
+                        var dataResourceUrl = SHOW_CONF.collectoryUrl + "/public/show/" + uid;
+                        var tableRow = "<tr><td><a href='" + dataResourceUrl + "'><span class='data-provider-name'>" + facetValue.label + "</span></a>";
+
+                        //console.log(uid);
+                        $.getJSON(SHOW_CONF.collectoryUrl + "/ws/dataResource/" + uid, function (collectoryData) {
+
+
+                            if (collectoryData.provider) {
+                                tableRow += "<br/><small><a href='" + SHOW_CONF.collectoryUrl + '/public/show/' + uid + "'>" + collectoryData.provider.name + "</a></small>";
+                            }
+                            tableRow += "</td>";
+                            tableRow += "<td>" + collectoryData.licenseType + "</td>";
+
+                            var queryUrl = uiUrl + "&fq=" + facetValue.fq;
+                            tableRow += "</td><td><a href='" + queryUrl + "'><span class='record-count'>" + facetValue.count + "</span></a></td>"
+                            tableRow += "</tr>";
+                            $('#data-providers-list tbody').append(tableRow);
+                        });
+                    }
+                });
+            } else {
+                $('.datasetLabel').html("No datasets have");
+            }
         }
     });
 }
