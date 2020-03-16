@@ -36,7 +36,6 @@ class BieService {
 
         def queryUrl = grailsApplication.config.bieService.baseURL + "/search?" + requestObj.getQueryString() +
                 "&facets=" + grailsApplication.config.search?.facets
-        queryUrl += "&q.op=OR"
 
         //add a query context for BIE - to reduce places to a subset
         if (grailsApplication.config.bieService.queryContext) {
@@ -55,6 +54,7 @@ class BieService {
 
         //try exact match
         if (! haveAcceptableResults && queryParam != "" && queryParam != "*%3A*") {
+            //log.info("Trying exact match...")
             acceptableResults = searchBieOnFullPlaceName(queryUrl, queryParam)
             if (acceptableResults?.searchResults) haveAcceptableResults = true
         }
@@ -64,6 +64,7 @@ class BieService {
             //match on all terms, but remove stopwords and '&'
             //these are aligned with the SOLR schema stopwords.txt
             //HACK: should be retrieve dynamically, but I don't know how to do this
+            //log.info("Trying all term match...")
             def stopWords = [
                     "a","an","and","are","as","at","be","but","by","for","if","in","into","is","it","no","not","of","on","or","s","such","t","that",
                     "the","their","then","there","these","they","this","to","was","will","with"
@@ -71,10 +72,11 @@ class BieService {
             def qryCleanWords = requestObj.getQ().split().flatten()
             qryCleanWords.removeIf{ stopWords.contains(it.toLowerCase()) }
             qryCleanWords.removeAll("&")
-            def qryClean = qryCleanWords.join(" AND ")
+            def qryWordCount = qryCleanWords.size()
+            def qryClean = qryCleanWords.join(" ")
 
             requestObj.setQ(qryClean)
-            /* TODO: fix for stemming move q queries to fq:bbg_name_s queries
+            /* in future, if fix for stemming requires not adding bbg_name_s to main text field, then move q queries to fq:bbg_name_s queries
             requestObj.setQ("*:*")
             def fqs = requestObj.getFq()
             if (fqs) {
@@ -97,6 +99,9 @@ class BieService {
                 /* URLEncoder.encode: encoding &,= and : breaks these tokens for SOLR */
             }
             queryUrl = queryUrl.replaceAll('"','%22').replaceAll("'","%27")
+            if (qryWordCount > 1) {
+                queryUrl += "&q_op=AND"
+            }
             log.info("queryUrlBie all terms = " + queryUrl)
             def json = webService.get(queryUrl)
             acceptableResults = JSON.parse(json)
@@ -109,6 +114,7 @@ class BieService {
 
         //default search
         if (! haveAcceptableResults) {
+            //log.info("Trying default search...")
             def json = webService.get(queryUrl)
             def resJson = JSON.parse(json)
             //TODO: need to change sort order to best-match desc maybe?
