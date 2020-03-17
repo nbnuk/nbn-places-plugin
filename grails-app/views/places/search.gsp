@@ -339,8 +339,8 @@
                             <div id="leafletMap"></div>
                             <!-- RR for legend display, if needed -->
                             <div id="template" style="display:none">
-                                <div class="colourbyTemplate">
-                                    <a class="colour-by-legend-toggle colour-by-control tooltips" href="#"
+                                <div class="colourbyTemplate" id="colourbyTemplate">
+                                    <a class="colour-by-legend-toggle colour-by-control tooltips" href="#" id="colour-by-legend-toggle"
                                                     title="Map legend - click to expand"><i class="fa fa-list-ul fa-lg"
                                                                            style="color:#333"></i>
                                     </a>
@@ -348,11 +348,11 @@
                                     <form class="leaflet-control-layers-list">
                                         <div class="leaflet-control-layers-overlays">
                                             <div style="overflow:auto;max-height:400px;">
-                                                <a href="#" class="hideColourControl pull-right"
+                                                <a href="#" class="hideColourControl pull-right" id="hideColourControl"
                                                                             style="padding-left:10px;"><i class="glyphicon glyphicon-remove"
                                                                              style="color:#333"></i>
                                                 </a>
-                                                <table class="legendTable"></table>
+                                                <table class="legendTable" id="legendTable"></table>
                                             </div>
                                         </div>
                                     </form>
@@ -449,7 +449,16 @@ var MAP_CONF = {
     presenceOrAbsence:          "${(grailsApplication.config?.search?.mapPresenceAndAbsence == 'true') ? "presence" : ""}",
     query:                      SEARCH_CONF.query,
     filterQueryJSON:            SEARCH_CONF.filterQueryJSON,
-    actualQueryUsed:            "${actualQueryUsed}"
+    actualQueryUsed:            "${actualQueryUsed}",
+    placeLayers:                null,
+    shapeLayers:                null,
+    html_LegendTable:                "#legendTable",
+    html_LeafletMap:                 "#leafletMap",
+    html_ColourByLegendToggle:       "#colour-by-legend-toggle",
+    html_ColourByControl:            "#colourByControl",
+    html_HideColourControl:          "#hideColourControl",
+    html_PlaceSummaryStats:          "#placeSummaryStats",
+    html_ColourByTemplate:           "#colourbyTemplate",
 };
 
 <g:if test="${(grailsApplication.config.search?.mapResults == 'true') && (searchResults.totalRecords > 0)}">

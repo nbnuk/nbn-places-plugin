@@ -69,6 +69,7 @@ function loadTheMap (MAP_CONF) {
             removeMap(MAP_CONF);
             loadMap(MAP_CONF);
             setMapTitle(MAP_CONF);
+            //TODO: generalise?
             if (!isIE) {
                 window.dispatchEvent(new Event('resize'));
             } else {
@@ -81,14 +82,14 @@ function loadTheMap (MAP_CONF) {
 }
 
 function initialPresenceAbsenceMap(MAP_CONF, searchResultsPresence, searchResultsAbsence) {
-    if ($('input[name=toggle]:checked', '#map-pa-switch').val() == 'absence') {
+    if ($('input[name=toggle]:checked', MAP_CONF.html_MapPAswitch).val() == 'absence') {
         MAP_CONF.resultsToMap = searchResultsAbsence;
         MAP_CONF.presenceOrAbsence = "absence";
     } //else default is presence map
 }
 
 function setPresenceAbsenceToggle(MAP_CONF, searchResultsPresence, searchResultsAbsence) {
-    $('input[name=toggle]', '#map-pa-switch').change(function() {
+    $('input[name=toggle]', MAP_CONF.html_MapPAswitch).change(function() {
         var toggle = this.value;
         if (toggle == 'absence') {
             MAP_CONF.resultsToMap = searchResultsAbsence;
@@ -114,25 +115,151 @@ function removeMap(MAP_CONF) {
 }
 
 
-var clickCount = 0;
-
-/**
- * Fudge to allow double clicks to propagate to map while allowing single clicks to be registered
- *
- */
-function pointLookupClickRegister(e) {
-    clickCount += 1;
-    if (clickCount <= 1) {
-        setTimeout(function() {
-            if (clickCount <= 1) {
-                pointLookup(e);
-            }
-            clickCount = 0;
-        }, 400);
+function pointLookup(MAP_CONF, e) {
+    MAP_CONF.popup = L.popup().setLatLng(e.latlng);
+    var radius = 0;
+    var zoomLevel = MAP_CONF.map.getZoom();
+    switch (zoomLevel){
+        case 0:
+            radius = 800;
+            break;
+        case 1:
+            radius = 400;
+            break;
+        case 2:
+            radius = 200;
+            break;
+        case 3:
+            radius = 100;
+            break;
+        case 4:
+            radius = 50;
+            break;
+        case 5:
+            radius = 25;
+            break;
+        case 6:
+            radius = 20;
+            break;
+        case 7:
+            radius = 7.5;
+            break;
+        case 8:
+            radius = 3;
+            break;
+        case 9:
+            radius = 1.5;
+            break;
+        case 10:
+            radius = .75;
+            break;
+        case 11:
+            radius = .25;
+            break;
+        case 12:
+            radius = .15;
+            break;
+        case 13:
+            radius = .1;
+            break;
+        case 14:
+            radius = .05;
+            break;
+        case 15:
+            radius = .025;
+            break;
+        case 16:
+            radius = .015;
+            break;
+        case 17:
+            radius = 0.0075;
+            break;
+        case 18:
+            radius = 0.004;
+            break;
+        case 19:
+            radius = 0.002;
+            break;
+        case 20:
+            radius = 0.001;
+            break;
     }
+
+    MAP_CONF.popupRadius = radius;
+
+    if (!MAP_CONF.query) return;
+
+    var mapQuery = MAP_CONF.query.replace(/&(?:lat|lon|radius)\=[\-\.0-9]+/g, ''); // remove existing lat/lon/radius/wkt params
+    MAP_CONF.map.spin(true);
+
+
+    var spatialQueryUrl = "";
+    var searchLink = "";
+    var dataToPass = {
+        format: "json"
+    }
+
+    if (MAP_CONF.mapType == 'show') {
+        spatialQueryUrl = MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > '' ? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) + ')' : '');
+        dataToPass = {
+            zoom: MAP_CONF.map.getZoom(),
+            lat: e.latlng.wrap().lat,
+            lon: e.latlng.wrap().lng,
+            radius: radius,
+            format: "json"
+        };
+    } else {
+        //radius is in km, convert crudely to decimal degrees where 1 degree ~ 100km NS, 70km EW
+        var radiusDD_NS = radius / 100.0;
+        var radiusDD_EW = radius / 70.0;
+        var latMin = e.latlng.wrap().lat - radiusDD_NS;
+        var latMax = e.latlng.wrap().lat + radiusDD_NS;
+        var lonMin = e.latlng.wrap().lng - radiusDD_EW;
+        var lonMax = e.latlng.wrap().lng + radiusDD_EW;
+        var actualQuery = MAP_CONF.actualQueryUsed;
+        spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + actualQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
+        searchLink = '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
+        //spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:[' + latMin.toString() + ' TO ' + latMax.toString() + ']&fq=longitude:[' + lonMin.toString() + ' TO ' + lonMax.toString() + ']';
+    }
+    console.log("spatialQueryUrl = " + spatialQueryUrl);
+    $.ajax({
+        url: spatialQueryUrl,
+        jsonp: "callback",
+        dataType: (MAP_CONF.mapType == "show"? "jsonp" : "json"),
+        timeout: 30000,
+        data: dataToPass,
+        success: function (response) {
+            MAP_CONF.map.spin(false);
+
+            if (MAP_CONF.mapType == "show") {
+
+                if (response.occurrences && response.occurrences.length > 0) {
+
+                    MAP_CONF.recordList = response.occurrences; // store the list of record uuids
+                    MAP_CONF.popupLatlng = e.latlng.wrap(); // store the coordinates of the mouse click for the popup
+
+                    // Load the first record details into popup
+                    insertRecordInfo(MAP_CONF,0);
+                }
+            } else {
+                if (response.searchResults && response.searchResults.results && response.searchResults.results.length) {
+                    MAP_CONF.recordList = response.searchResults.results;
+                    MAP_CONF.popupLatlng = e.latlng.wrap();
+                    insertPlaceInfo(MAP_CONF,0, searchLink);
+                }
+                console.log(response);
+            }
+        },
+        error: function (x, t, m) {
+            MAP_CONF.map.spin(false);
+            console.log("Error getting point details from WS call");
+        },
+
+    });
+
 }
 
-function addLegendItem(name, red, green, blue, rgbhex, hiderangemax){
+function addLegendItem(MAP_CONF, name, red, green, blue, rgbhex, hiderangemax){
     var isoDateRegEx = /^(\d{4})-\d{2}-\d{2}T.*/; // e.g. 2001-02-31T12:00:00Z with year capture
 
     if (name.search(isoDateRegEx) > -1) {
@@ -147,8 +274,8 @@ function addLegendItem(name, red, green, blue, rgbhex, hiderangemax){
         var nameVal = name;
     }
     var legendText = (nameVal);
-
-    $(".legendTable")
+    
+    $(MAP_CONF.html_LegendTable)
         .append($('<tr>')
             .append($('<td>')
                 .append($('<i>')
@@ -167,26 +294,26 @@ function setMapTitle (MAP_CONF) {
     if (MAP_CONF.mapType == 'show') {
         //added checks for >= 0 because if -1 then webservice call timed out
         if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-            $('#occurrenceRecordCountAll').html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
+            $(MAP_CONF.html_OccurrenceRecordCountAll).html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
         }
 
         if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-            $(".occurrenceRecordCount").html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //place show charts tab
+            $(MAP_CONF.html_OccurrenceRecordCount).html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString()); //place show charts tab
         }
         if (MAP_CONF.presenceOrAbsence == 'presence') {
             if (MAP_CONF.pageResultsOccurrencePresenceRecords >= 0) {
-                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrencePresenceRecords.toLocaleString() + " presence");
+                $(MAP_CONF.html_OccurrenceRecordCount).html(MAP_CONF.pageResultsOccurrencePresenceRecords.toLocaleString() + " presence");
             }
         } else if (MAP_CONF.presenceOrAbsence == 'absence') {
             if (MAP_CONF.pageResultsOccurrenceAbsenceRecords >= 0) {
-                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceAbsenceRecords.toLocaleString() + " absence");
+                $(MAP_CONF.html_OccurrenceRecordCount).html(MAP_CONF.pageResultsOccurrenceAbsenceRecords.toLocaleString() + " absence");
             }
         } else { //all records
             if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
-                $('#occurrenceRecordCount').html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + "");
+                $(MAP_CONF.html_OccurrenceRecordCount).html(MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + "");
             }
             if (MAP_CONF.allResultsOccurrenceRecordsNoMapFilter >= 0) {
-                $('#occurrenceRecordCountAll').html("(" + MAP_CONF.allResultsOccurrenceRecordsNoMapFilter.toLocaleString() + " in total)");
+                $(MAP_CONF.html_OccurrenceRecordCountAll).html("(" + MAP_CONF.allResultsOccurrenceRecordsNoMapFilter.toLocaleString() + " in total)");
             }
         }
     }
@@ -197,8 +324,6 @@ function extractCoordsFromWKTPoint(wkt) {
     return wkt.substring("POINT(".length, wkt.length - 1).split(" ")
 }
 
-var placeLayers = new L.LayerGroup();
-var shapeLayers = new L.LayerGroup();
 
 function fitResultsMapToBounds(MAP_CONF) {
     //TODO: at the moment this fits the search map to the first 50 places in the results. This could be improved.
@@ -240,7 +365,7 @@ function fitResultsMapToBounds(MAP_CONF) {
         var dataBounds = L.latLngBounds(sw, ne);
 
         setTimeout(function() {
-            //seem to be running int https://github.com/Leaflet/Leaflet/issues/3249: if map is not in open tab when page first loads
+            //seem to be running into https://github.com/Leaflet/Leaflet/issues/3249: if map is not in open tab when page first loads
             MAP_CONF.map.fitBounds(dataBounds, {maxZoom: MAP_CONF.defaultShapeZoom, animate: false});
         }, 300);
 
@@ -249,8 +374,8 @@ function fitResultsMapToBounds(MAP_CONF) {
 
 function loadMap(MAP_CONF) {
 
-    placeLayers = new L.LayerGroup();
-    shapeLayers = new L.LayerGroup();
+    MAP_CONF.placeLayers = new L.LayerGroup();
+    MAP_CONF.shapeLayers = new L.LayerGroup();
 
     var prms = {
         layers: 'ALA:occurrences',
@@ -344,7 +469,7 @@ function loadMap(MAP_CONF) {
 
                 console.log("Mapping places: " + url);
                 placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
-                placeLayer[i].addTo(shapeLayers);
+                placeLayer[i].addTo(MAP_CONF.shapeLayers);
             }
         } else {
             var shapeLayer = L.tileLayer.wms(wmsURL, {
@@ -358,7 +483,7 @@ function loadMap(MAP_CONF) {
                 ENV: MAP_CONF.mapEnvOptions, //TODO: color by no. recs
                 GRIDDETAIL: 32,
                 STYLE: "opacity:0.8" // for grid data
-            }).addTo(shapeLayers);
+            }).addTo(MAP_CONF.shapeLayers);
         }
 
 
@@ -377,7 +502,7 @@ function loadMap(MAP_CONF) {
             maxZoom: 18,
             minZoom: 0,
             continuousWorld: true
-        }).addTo(shapeLayers);
+        }).addTo(MAP_CONF.shapeLayers);
 
         if (MAP_CONF.mapLayersFqs != '') { // additional FQ criteria for each map layer
             fqsArr = MAP_CONF.mapLayersFqs.split("|");
@@ -401,7 +526,7 @@ function loadMap(MAP_CONF) {
                 }
                 //console.log("Mapping records: " + url);
                 placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
-                placeLayer[i].addTo(placeLayers);
+                placeLayer[i].addTo(MAP_CONF.placeLayers);
             }
         } else {
             prms["ENV"] = MAP_CONF.mapEnvOptions;
@@ -414,7 +539,7 @@ function loadMap(MAP_CONF) {
                 url += "&fq=-occurrence_status:present"
             }
             var placeLayer = L.tileLayer.wms(url, prms);
-            placeLayer.addTo(placeLayers);
+            placeLayer.addTo(MAP_CONF.placeLayers);
         }
 
         //console.log("shapeLayers:");
@@ -430,10 +555,10 @@ function loadMap(MAP_CONF) {
         },
         onAdd: function (map) {
             // create the control container with a particular class name
-            var $controlToAdd = $('.colourbyTemplate').clone();
+            var $controlToAdd = $(MAP_CONF.html_ColourByTemplate).clone();
             var container = L.DomUtil.create('div', 'leaflet-control-layers');
             var $container = $(container);
-            $container.attr("id","colourByControl");
+            $container.attr("id", MAP_CONF.html_ColourByControl.substring(1));
             $container.attr('aria-haspopup', true);
             $container.html($controlToAdd.html());
             return container;
@@ -441,10 +566,10 @@ function loadMap(MAP_CONF) {
     });
 
 
-    MAP_CONF.map = L.map('leafletMap', {
+    MAP_CONF.map = L.map(MAP_CONF.html_LeafletMap.substring(1), {
         center: [MAP_CONF.defaultDecimalLatitude, MAP_CONF.defaultDecimalLongitude],
         zoom: MAP_CONF.defaultZoomLevel,
-        layers: [placeLayers, shapeLayers],
+        layers: [MAP_CONF.placeLayers, MAP_CONF.shapeLayers],
         scrollWheelZoom: false
     });
 
@@ -523,38 +648,55 @@ function loadMap(MAP_CONF) {
     $('.leaflet-container').css('cursor','pointer'); //override grab and grabbing pointers to indicate that user can click on points; not ideal
 
 
-    $('.colour-by-control').click(function(e){
+    $(MAP_CONF.html_ColourByLegendToggle).click(function(e){
         if($(this).parent().hasClass('leaflet-control-layers-expanded')){
             $(this).parent().removeClass('leaflet-control-layers-expanded');
-            $('.colour-by-legend-toggle').show();
+            $(MAP_CONF.html_ColourByLegendToggle).show();
         } else {
             $(this).parent().addClass('leaflet-control-layers-expanded');
-            $('.colour-by-legend-toggle').hide();
+            $(MAP_CONF.html_ColourByLegendToggle).hide();
         }
         e.preventDefault();
         e.stopPropagation();
         return false;
     });
 
-    $('.colour-by-control').parent().addClass('leaflet-control-layers-expanded');
-    $('.colour-by-legend-toggle').hide();
+    $(MAP_CONF.html_ColourByLegendToggle).parent().addClass('leaflet-control-layers-expanded');
+    $(MAP_CONF.html_ColourByLegendToggle).hide();
 
-    $('#colourByControl').mouseover(function(e){
+    var clickCount = 0;
+
+    /**
+     * Fudge to allow double clicks to propagate to map while allowing single clicks to be registered
+     *
+     */
+    var pointLookupClickRegister = function(e) {
+        clickCount += 1;
+        if (clickCount <= 1) {
+            setTimeout(function() {
+                if (clickCount <= 1) {
+                    pointLookup(MAP_CONF, e);
+                }
+                clickCount = 0;
+            }, 400);
+        }
+    };
+
+    $(MAP_CONF.html_ColourByControl).mouseover(function(e){
         //console.log('mouseover');
         MAP_CONF.map.dragging.disable();
         MAP_CONF.map.off('click', pointLookupClickRegister);
     });
 
-    $('#colourByControl').mouseout(function(e){
+    $(MAP_CONF.html_ColourByControl).mouseout(function(e){
         //console.log('mouseout');
         MAP_CONF.map.dragging.enable();
         MAP_CONF.map.on('click', pointLookupClickRegister);
     });
 
-    $('.hideColourControl').click(function(e){
-        //console.log('hideColourControl');
-        $('#colourByControl').removeClass('leaflet-control-layers-expanded');
-        $('.colour-by-legend-toggle').show();
+    $(MAP_CONF.html_HideColourControl).click(function(e){
+        $(MAP_CONF.html_ColourByControl).removeClass('leaflet-control-layers-expanded');
+        $(MAP_CONF.html_ColourByLegendToggle).show();
         e.preventDefault();
         e.stopPropagation();
         return false;
@@ -580,8 +722,8 @@ function loadMap(MAP_CONF) {
     }
 
     if (MAP_CONF.mapType == 'search') {
-        $('.legendTable').html('');
-        $('.legendTable')
+        $(MAP_CONF.html_LegendTable).html('');
+        $(MAP_CONF.html_LegendTable)
             .append($('<tr>')
                 .append($('<td>')
                     .addClass('legendTitle')
@@ -594,14 +736,14 @@ function loadMap(MAP_CONF) {
             var mapLabelsArr = MAP_CONF.mapLayersLabels.split("|");
             var mapColoursArr = MAP_CONF.mapLayersColours.split("|");
             for (var i = 0; i < mapLabelsArr.length; i++) {
-                addLegendItem(mapLabelsArr[i], 0, 0, 0, mapColoursArr[i], false); //use rgbhex and full label provided
+                addLegendItem(MAP_CONF, mapLabelsArr[i], 0, 0, 0, mapColoursArr[i], false); //use rgbhex and full label provided
             }
         } else {
             for (var numOccsLog = 0; numOccsLog < 11; numOccsLog++) {
                 var numOccs = Math.floor(Math.exp(numOccsLog) - 1);
                 if (numOccs > 1000) numOccs = Math.round(numOccs / 100) * 100;
                 if (numOccs > 10) numOccs = Math.round(numOccs / 10) * 10; //prettier numbers
-                addLegendItem(numOccs.toString(), 0, 0, 0, greenColours[numOccsLog], false);
+                addLegendItem(MAP_CONF, numOccs.toString(), 0, 0, 0, greenColours[numOccsLog], false);
             }
         }
 
@@ -616,8 +758,8 @@ function loadMap(MAP_CONF) {
                     break;
                 }
             }
-            $('.legendTable').html('');
-            $(".legendTable")
+            $(MAP_CONF.html_LegendTable).html('');
+            $(MAP_CONF.html_LegendTable)
                 .append($('<tr>')
                     .append($('<td>')
                         .addClass('legendTitle')
@@ -634,7 +776,7 @@ function loadMap(MAP_CONF) {
 
                         $.each(data, function (index, legendDef) {
                             var legItemName = legendDef.name ? legendDef.name : 'Not specified';
-                            addLegendItem(legItemName, legendDef.red, legendDef.green, legendDef.blue, '', MAP_CONF.mapEnvLegendHideMax);
+                            addLegendItem(MAP_CONF, legItemName, legendDef.red, legendDef.green, legendDef.blue, '', MAP_CONF.mapEnvLegendHideMax);
                         });
                     }
                 });
@@ -643,12 +785,17 @@ function loadMap(MAP_CONF) {
                 var mapLabelsArr = MAP_CONF.mapLayersLabels.split("|");
                 var mapColoursArr = MAP_CONF.mapLayersColours.split("|");
                 for (var i = 0; i < mapLabelsArr.length; i++) {
-                    addLegendItem(mapLabelsArr[i], 0, 0, 0, mapColoursArr[i], false); //use rgbhex and full label provided
+                    addLegendItem(MAP_CONF, mapLabelsArr[i], 0, 0, 0, mapColoursArr[i], false); //use rgbhex and full label provided
                 }
             } else {
-                $('#colourByControl').hide();
+                $(MAP_CONF.html_ColourByControl).hide();
             }
         }
+
+        //var cloneLayer = require('leaflet-clonelayer');
+        //var cloned = cloneLayer(defaultBaseLayer);
+        //TODO *** make MAP_CONF.map an array? And all the layers and controls? That might be quite a pain
+        //Or replicate all the layers, controls, etc. on the SHOW map?
     }
 }
 
@@ -657,164 +804,14 @@ function loadMap(MAP_CONF) {
  * Event handler for point lookup.
  * @param e
  */
-function pointLookup(e) {
-    MAP_CONF.popup = L.popup().setLatLng(e.latlng);
-    var radius = 0;
-    var size = $('sizeslider-val').html();
-    var zoomLevel = MAP_CONF.map.getZoom();
-    switch (zoomLevel){
-        case 0:
-            radius = 800;
-            break;
-        case 1:
-            radius = 400;
-            break;
-        case 2:
-            radius = 200;
-            break;
-        case 3:
-            radius = 100;
-            break;
-        case 4:
-            radius = 50;
-            break;
-        case 5:
-            radius = 25;
-            break;
-        case 6:
-            radius = 20;
-            break;
-        case 7:
-            radius = 7.5;
-            break;
-        case 8:
-            radius = 3;
-            break;
-        case 9:
-            radius = 1.5;
-            break;
-        case 10:
-            radius = .75;
-            break;
-        case 11:
-            radius = .25;
-            break;
-        case 12:
-            radius = .15;
-            break;
-        case 13:
-            radius = .1;
-            break;
-        case 14:
-            radius = .05;
-            break;
-        case 15:
-            radius = .025;
-            break;
-        case 16:
-            radius = .015;
-            break;
-        case 17:
-            radius = 0.0075;
-            break;
-        case 18:
-            radius = 0.004;
-            break;
-        case 19:
-            radius = 0.002;
-            break;
-        case 20:
-            radius = 0.001;
-            break;
-    }
 
-    if (size >= 5 && size < 8){
-        radius = radius * 2;
-    }
-    if (size >= 8){
-        radius = radius * 3;
-    }
-
-    MAP_CONF.popupRadius = radius;
-
-    if (!MAP_CONF.query) return;
-
-    var mapQuery = MAP_CONF.query.replace(/&(?:lat|lon|radius)\=[\-\.0-9]+/g, ''); // remove existing lat/lon/radius/wkt params
-    MAP_CONF.map.spin(true);
-
-
-    var spatialQueryUrl = "";
-    var searchLink = "";
-    var dataToPass = {
-        format: "json"
-    }
-
-    if (MAP_CONF.mapType == 'show') {
-        spatialQueryUrl = MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > '' ? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) + ')' : '');
-        dataToPass = {
-            zoom: MAP_CONF.map.getZoom(),
-            lat: e.latlng.wrap().lat,
-            lon: e.latlng.wrap().lng,
-            radius: radius,
-            format: "json"
-        };
-    } else {
-        //radius is in km, convert crudely to decimal degrees where 1 degree ~ 100km NS, 70km EW
-        var radiusDD_NS = radius / 100.0;
-        var radiusDD_EW = radius / 70.0;
-        var latMin = e.latlng.wrap().lat - radiusDD_NS;
-        var latMax = e.latlng.wrap().lat + radiusDD_NS;
-        var lonMin = e.latlng.wrap().lng - radiusDD_EW;
-        var lonMax = e.latlng.wrap().lng + radiusDD_EW;
-        var actualQuery = MAP_CONF.actualQueryUsed;
-        spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + actualQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
-        searchLink = '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
-        //spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:[' + latMin.toString() + ' TO ' + latMax.toString() + ']&fq=longitude:[' + lonMin.toString() + ' TO ' + lonMax.toString() + ']';
-    }
-    console.log("spatialQueryUrl = " + spatialQueryUrl);
-    $.ajax({
-        url: spatialQueryUrl,
-        jsonp: "callback",
-        dataType: (MAP_CONF.mapType == "show"? "jsonp" : "json"),
-        timeout: 30000,
-        data: dataToPass,
-        success: function (response) {
-            MAP_CONF.map.spin(false);
-
-            if (MAP_CONF.mapType == "show") {
-
-                if (response.occurrences && response.occurrences.length > 0) {
-
-                    MAP_CONF.recordList = response.occurrences; // store the list of record uuids
-                    MAP_CONF.popupLatlng = e.latlng.wrap(); // store the coordinates of the mouse click for the popup
-
-                    // Load the first record details into popup
-                    insertRecordInfo(0);
-                }
-            } else {
-                if (response.searchResults && response.searchResults.results && response.searchResults.results.length) {
-                    MAP_CONF.recordList = response.searchResults.results;
-                    MAP_CONF.popupLatlng = e.latlng.wrap();
-                    insertPlaceInfo(0, searchLink);
-                }
-                console.log(response);
-            }
-        },
-        error: function (x, t, m) {
-            MAP_CONF.map.spin(false);
-            console.log("Error getting point details from WS call");
-        },
-
-    });
-
-}
 
 /**
  * Populate the map popup with record details
  *
  * @param recordIndex
  */
-function insertRecordInfo(recordIndex) {
+function insertRecordInfo(MAP_CONF, recordIndex) {
     //console.log("insertRecordInfo", recordIndex, MAP_CONF.recordList);
     var recordUuid = MAP_CONF.recordList[recordIndex];
     var $popupClone = $('.popupRecordTemplate').clone();
@@ -868,7 +865,7 @@ function insertRecordInfo(recordIndex) {
 
 }
 
-function insertPlaceInfo(placeIndex, searchLink) {
+function insertPlaceInfo(MAP_CONF, placeIndex, searchLink) {
     console.log("insertPlaceInfo", placeIndex, MAP_CONF.recordList);
     var place = MAP_CONF.recordList[placeIndex];
     var $popupClone = $('.popupPlaceTemplate').clone();
@@ -909,7 +906,7 @@ function insertPlaceInfo(placeIndex, searchLink) {
         var displayHtml = "Occurrences: " + (data.occurrenceCount? data.occurrenceCount.toString() : '0') + '<br/>';
         displayHtml += "Species: " + (data.speciesCount? data.speciesCount.toString() : '0');
         console.log(displayHtml);
-        $('#placeSummaryStats').html( displayHtml );
+        $(MAP_CONF.html_PlaceSummaryStats).html( displayHtml );
     });
 
     MAP_CONF.map.spin(false);

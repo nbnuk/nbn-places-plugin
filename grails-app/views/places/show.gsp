@@ -55,6 +55,10 @@
     <asset:javascript src="jquery.i18n.properties-1.0.9.js" />
     <asset:javascript src="leafletPlugins.js"/>
     <asset:stylesheet src="leafletPlugins.css"/>
+
+    <asset:stylesheet src="exploreYourArea.css" />
+    <asset:stylesheet src="print-area.css" media="print" />
+
 </head>
 
 <body class="page-taxon">
@@ -232,10 +236,12 @@
         getPreferredSpeciesListUrl: "${grailsApplication.config.speciesList.baseURL}",
         druid: "${grailsApplication.config.speciesList.preferredSpeciesListDruid}",
         addPreferenceButton: ${imageClient.checkAllowableEditRole()},
-        organisationName: "${grailsApplication.config.skin?.orgNameLong}"
+        organisationName: "${grailsApplication.config.skin?.orgNameLong}",
+        contextPath: "${request.contextPath}",
+        locale: "${org.springframework.web.servlet.support.RequestContextUtils.getLocale(request)}"
 };
 
-var MAP_CONF = {
+var MAP_CONF_ABOUT = {
         mapType:                    "show",
         cl:                         "${cl}",
         clName:                     "${clName}",
@@ -281,16 +287,86 @@ var MAP_CONF = {
         queryDisplayString:        "${clName}",
         removeFqs:                 "",
         placeName:          "${placeDetails?.bbg_name_s ?: ''}",
+        placeLayers:                null,
+        shapeLayers:                null,
+        html_MapPAswitch:                "#map-pa-switch",
+        html_LegendTable:                "#legendTable",
+        html_OccurrenceRecordCountAll:   "#occurrenceRecordCountAll",
+        html_OccurrenceRecordCount:      "#occurrenceRecordCount",
+        html_LeafletMap:                 "#leafletMap",
+        html_ColourByLegendToggle:       "#colour-by-legend-toggle",
+        html_ColourByControl:            "#colourByControl",
+        html_HideColourControl:          "#hideColourControl",
+        html_ColourByTemplate:           "#colourbyTemplate",
 }
 
-
+var MAP_CONF_OVERVIEW = {
+        mapType:                    "show",
+        cl:                         "${cl}",
+        clName:                     "${clName}",
+        shape_filter:               "${cl}:\"${clName}\"",
+        centroid:                   ${centroid},
+        shp_sw:                     ${shp_sw},
+        shp_ne:                     ${shp_ne},
+        defaultShapeZoom:           ${grailsApplication.config.map?.default?.shapeZoomLevel ?: 10},
+        biocacheServiceUrl:         "${grailsApplication.config.biocacheService.baseURL}",
+        biocacheUrl:                "${grailsApplication.config.biocache.baseURL}",
+        allResultsOccurrenceRecords:            ${allResultsOccurrenceRecords},
+        allResultsOccurrenceRecordsNoMapFilter: ${allResultsOccurrenceRecordsNoMapFilter},
+        pageResultsOccurrenceRecords:           ${pageResultsOccurrenceRecords},
+        pageResultsOccurrencePresenceRecords:   ${pageResultsOccurrencePresenceRecords},
+        pageResultsOccurrenceAbsenceRecords:    ${pageResultsOccurrenceAbsenceRecords},
+        defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude},
+        defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude},
+        defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel},
+        mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
+        defaultMapUrl:              "${grailsApplication.config.map.default.url}",
+        defaultMapBaselayer:        "${grailsApplication.config.map.default?.baselayer?: 'Minimal'}",
+        defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
+        defaultMapId:               "${grailsApplication.config.map.default.id}",
+        defaultMapToken:            "${grailsApplication.config.map.default.token}",
+        mapQueryContext:            "${grailsApplication.config?.biocacheService?.queryContext ?: ''}",
+        additionalMapFilter:        "${raw(grailsApplication.config.show?.additionalMapFilter ?: '')}",
+        map:                        null,
+        mapOutline:                 ${grailsApplication.config.map.outline ?: 'false'},
+        mapEnvOptions:              "${grailsApplication.config.map.env?.options?:'color:' + (grailsApplication.config.map?.records?.colour?: 'e6704c')+ ';name:circle;size:4;opacity:0.8'}",
+        mapEnvLegendTitle:          "${grailsApplication.config.map.env?.legendtitle?:''}",
+        mapEnvLegendHideMax:        "${grailsApplication.config.map.env?.legendhidemaxrange?:false}",
+        mapLayersFqs:               "${grailsApplication.config.map.layers?.fqs?:''}",
+        mapLayersLabels:            "${grailsApplication.config.map.layers?.labels?:''}",
+        mapLayersColours:           "${grailsApplication.config.map.layers?.colours?:''}",
+        spatialWmsUrl:              "${grailsApplication.config.geoserver?.baseURL?:''}",
+        showResultsMap:             ${grailsApplication.config?.show?.mapResults == 'true'},
+        mapPresenceAndAbsence:      ${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'},
+        resultsToMap:               "${(grailsApplication.config?.show?.mapPresenceAndAbsence == 'true') ? searchResultsPresence : searchResults}",
+        resultsToMapJSON:           null,
+        presenceOrAbsence:          "${(grailsApplication.config?.show?.mapPresenceAndAbsence == 'true') ? "presence" : ""}",
+        guid:                       "${guid}",
+        query:                     "?q=" + "${cl}:\"${clName}\"",
+        queryDisplayString:        "${clName}",
+        removeFqs:                 "",
+        placeName:          "${placeDetails?.bbg_name_s ?: ''}",
+        placeLayers:                null,
+        shapeLayers:                null,
+        html_MapPAswitch:                "#map-pa-switch_Overview",
+        html_LegendTable:                "#legendTable_Overview",
+        html_OccurrenceRecordCountAll:   "#occurrenceRecordCountAll_Overview",
+        html_OccurrenceRecordCount:      "#occurrenceRecordCount_Overview",
+        html_LeafletMap:                 "#leafletMap_Overview",
+        html_ColourByLegendToggle:       "#colour-by-legend-toggle_Overview",
+        html_ColourByControl:            "#colourByControl_Overview",
+        html_HideColourControl:          "#hideColourControl_Overview",
+        html_ColourByTemplate:           "#colourbyTemplate_Overview",
+}
 
 $(function(){
     showPlacePage();
     <g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
-        initialPresenceAbsenceMap(MAP_CONF, "${searchResultsPresence}", "${searchResultsAbsence}");
+        initialPresenceAbsenceMap(MAP_CONF_ABOUT, "${searchResultsPresence}", "${searchResultsAbsence}");
+        initialPresenceAbsenceMap(MAP_CONF_OVERVIEW, "${searchResultsPresence}", "${searchResultsAbsence}");
     </g:if>
-    loadTheMap(MAP_CONF)
+    loadTheMap(MAP_CONF_ABOUT);
+    loadTheMap(MAP_CONF_OVERVIEW);
 });
 
 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -304,13 +380,17 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             qc="${recordsFilterToggle? (recordsFilter ?: '') : (grailsApplication.config.biocacheService.queryContext ?: '')}"
             fq=""/>
     }
-    if(target == '#overview'){
-        loadTheMap(MAP_CONF);
+    if(target == '#about'){
+        loadTheMap(MAP_CONF_ABOUT);
+    }
+    if (target == '#overview') {
+        loadTheMap(MAP_CONF_OVERVIEW);
     }
 });
 
 <g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
-    setPresenceAbsenceToggle(MAP_CONF, "${searchResultsPresence}", "${searchResultsAbsence}");
+    setPresenceAbsenceToggle(MAP_CONF_ABOUT, "${searchResultsPresence}", "${searchResultsAbsence}");
+    setPresenceAbsenceToggle(MAP_CONF_OVERVIEW, "${searchResultsPresence}", "${searchResultsAbsence}");
 </g:if>
 
 $('#submitDownloadMap').click(function(e){
@@ -319,7 +399,7 @@ $('#submitDownloadMap').click(function(e){
 });
 
 function downloadMapNow(){
-    var bounds = MAP_CONF.map.getBounds();
+    var bounds = MAP_CONF_ABOUT.map.getBounds();
     var ne =  bounds.getNorthEast();
     var sw =  bounds.getSouthWest();
     var extents = sw.lng + ',' + sw.lat + ',' + ne.lng + ','+ ne.lat;
