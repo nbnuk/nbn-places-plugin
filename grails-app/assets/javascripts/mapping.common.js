@@ -23,6 +23,8 @@ var greenColours = [ "FEFEFE", "B3FFB3", "99FF99", "80FF80", "4DFF4D", "1AFF1A",
 
 var placeHtmlStyles = "background-color: #[greenColourMatched];";
 
+var MAP_CONF_ptr; //HACK pointer to current MAP_CONF object, since can't easily pass the object in the onclick event
+
 L.Icon.Default.imagePath = 'assets/leaflet/images/';
 
 //adapted from sliderProUtils function of same name
@@ -239,13 +241,14 @@ function pointLookup(MAP_CONF, e) {
                     MAP_CONF.popupLatlng = e.latlng.wrap(); // store the coordinates of the mouse click for the popup
 
                     // Load the first record details into popup
-                    insertRecordInfo(MAP_CONF,0);
+                    MAP_CONF_ptr = MAP_CONF;
+                    insertRecordInfo(0);
                 }
             } else {
                 if (response.searchResults && response.searchResults.results && response.searchResults.results.length) {
                     MAP_CONF.recordList = response.searchResults.results;
                     MAP_CONF.popupLatlng = e.latlng.wrap();
-                    insertPlaceInfo(MAP_CONF,0, searchLink);
+                    insertPlaceInfo(0, searchLink);
                 }
                 console.log(response);
             }
@@ -274,7 +277,7 @@ function addLegendItem(MAP_CONF, name, red, green, blue, rgbhex, hiderangemax){
         var nameVal = name;
     }
     var legendText = (nameVal);
-    
+
     $(MAP_CONF.html_LegendTable)
         .append($('<tr>')
             .append($('<td>')
@@ -811,22 +814,23 @@ function loadMap(MAP_CONF) {
  *
  * @param recordIndex
  */
-function insertRecordInfo(MAP_CONF, recordIndex) {
-    //console.log("insertRecordInfo", recordIndex, MAP_CONF.recordList);
-    var recordUuid = MAP_CONF.recordList[recordIndex];
+//uses MAP_CONF_ptr to know which map is currently being referenced
+function insertRecordInfo(recordIndex) {
+    //console.log("insertRecordInfo", recordIndex, MAP_CONF_ptr.recordList);
+    var recordUuid = MAP_CONF_ptr.recordList[recordIndex];
     var $popupClone = $('.popupRecordTemplate').clone();
-    MAP_CONF.map.spin(true);
+    MAP_CONF_ptr.map.spin(true);
 
-    if (MAP_CONF.recordList.length > 1) {
+    if (MAP_CONF_ptr.recordList.length > 1) {
         // populate popup header
         $popupClone.find('.multiRecordHeader').show();
         $popupClone.find('.currentRecord').html(recordIndex + 1);
-        $popupClone.find('.totalrecords').html(MAP_CONF.recordList.length.toString().replace(/100/, '100+'));
-        var occLookup = "&radius=" + MAP_CONF.popupRadius + "&lat=" + MAP_CONF.popupLatlng.lat + "&lon=" + MAP_CONF.popupLatlng.lng;
-        $popupClone.find('a.viewAllRecords').attr('href', MAP_CONF.biocacheUrl + "/occurrences/search" + MAP_CONF.query.replace(/&(?:lat|lon|radius)\=[\-\.0-9]+/g, '') + occLookup);
+        $popupClone.find('.totalrecords').html(MAP_CONF_ptr.recordList.length.toString().replace(/100/, '100+'));
+        var occLookup = "&radius=" + MAP_CONF_ptr.popupRadius + "&lat=" + MAP_CONF_ptr.popupLatlng.lat + "&lon=" + MAP_CONF_ptr.popupLatlng.lng;
+        $popupClone.find('a.viewAllRecords').attr('href', MAP_CONF_ptr.biocacheUrl + "/occurrences/search" + MAP_CONF_ptr.query.replace(/&(?:lat|lon|radius)\=[\-\.0-9]+/g, '') + occLookup);
         // populate popup footer
         $popupClone.find('.multiRecordFooter').show();
-        if (recordIndex < MAP_CONF.recordList.length - 1) {
+        if (recordIndex < MAP_CONF_ptr.recordList.length - 1) {
             $popupClone.find('.nextRecord a').attr('onClick', 'insertRecordInfo('+(recordIndex + 1)+'); return false;');
             $popupClone.find('.nextRecord a').removeClass('disabled');
         }
@@ -836,15 +840,15 @@ function insertRecordInfo(MAP_CONF, recordIndex) {
         }
     }
 
-    $popupClone.find('.recordLink a').attr('href', MAP_CONF.biocacheUrl + "/occurrences/" + recordUuid);
+    $popupClone.find('.recordLink a').attr('href', MAP_CONF_ptr.biocacheUrl + "/occurrences/" + recordUuid);
 
     // Get the current record details
     $.ajax({
-        url: MAP_CONF.biocacheServiceUrl + "/occurrences/" + recordUuid + ".json",
+        url: MAP_CONF_ptr.biocacheServiceUrl + "/occurrences/" + recordUuid + ".json",
         jsonp: "callback",
         dataType: "jsonp",
         success: function(record) {
-            MAP_CONF.map.spin(false);
+            MAP_CONF_ptr.map.spin(false);
 
             if (record.raw) {
                 var displayHtml = formatPopupHtml(record);
@@ -855,17 +859,17 @@ function insertRecordInfo(MAP_CONF, recordIndex) {
                 $popupClone.find('.recordSummary').html( "<br>Error: record not found for ID: <span style='white-space:nowrap;'>" + recordUuid + '</span><br><br>' ); // insert into clone
             }
 
-            MAP_CONF.popup.setContent($popupClone.html()); // push HTML into popup content
-            MAP_CONF.popup.openOn(MAP_CONF.map);
+            MAP_CONF_ptr.popup.setContent($popupClone.html()); // push HTML into popup content
+            MAP_CONF_ptr.popup.openOn(MAP_CONF_ptr.map);
         },
         error: function() {
-            MAP_CONF.map.spin(false);
+            MAP_CONF_ptr.map.spin(false);
         }
     });
 
 }
 
-function insertPlaceInfo(MAP_CONF, placeIndex, searchLink) {
+function insertPlaceInfo(placeIndex, searchLink) {
     console.log("insertPlaceInfo", placeIndex, MAP_CONF.recordList);
     var place = MAP_CONF.recordList[placeIndex];
     var $popupClone = $('.popupPlaceTemplate').clone();
@@ -884,11 +888,11 @@ function insertPlaceInfo(MAP_CONF, placeIndex, searchLink) {
         // populate popup footer
         $popupClone.find('.multiPlaceFooter').show();
         if (placeIndex < MAP_CONF.recordList.length - 1) {
-            $popupClone.find('.nextPlace a').attr('onClick', 'insertPlaceInfo('+(placeIndex + 1)+',"' + searchLink + '"); return false;');
+            $popupClone.find('.nextPlace a').attr('onClick', 'insertPlaceInfo(' +(placeIndex + 1)+',"' + searchLink + '"); return false;');
             $popupClone.find('.nextPlace a').removeClass('disabled');
         }
         if (placeIndex > 0) {
-            $popupClone.find('.previousPlace a').attr('onClick', 'insertPlaceInfo('+(placeIndex - 1)+',"' + searchLink + '"); return false;');
+            $popupClone.find('.previousPlace a').attr('onClick', 'insertPlaceInfo(' +(placeIndex - 1)+',"' + searchLink + '"); return false;');
             $popupClone.find('.previousPlace a').removeClass('disabled');
         }
     } else {
@@ -911,6 +915,7 @@ function insertPlaceInfo(MAP_CONF, placeIndex, searchLink) {
 
     MAP_CONF.map.spin(false);
 }
+
 
 function formatPopupHtml(record) {
     var displayHtml = "";

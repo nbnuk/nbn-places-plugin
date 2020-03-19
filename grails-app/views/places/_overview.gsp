@@ -1,12 +1,36 @@
 <section class="tab-pane fade in active" id="overview">
     <div class="row taxon-row">
-        <div class="col-md-6">
-
-            Taxon tree here
-
-        </div><!-- end col 1 -->
-
-        <div class="col-md-6">
+        <div class="col-md-7 col-xs-12">
+            <div id="taxaBox">
+                <div id="leftList">
+                    <table id="taxa-level-0">
+                        <thead>
+                        <tr>
+                            <th><g:message code="eya.table.01.th01" default="Group"/></th>
+                            <th><g:message code="eya.table.01.th02" default="Species"/></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="rightList" class="tableContainer">
+                    <table>
+                        <thead class="fixedHeader">
+                        <tr>
+                            <th class="speciesIndex">&nbsp;&nbsp;</th>
+                            <th class="sciName"><a href="0" id="speciesSort" data-sort="taxa" title="sort by taxa"><g:message code="eya.table.02.th01" default="Species"/></a>
+                                <span id="sortSeparator">:</span>
+                                <a href="0" id="commonSort" data-sort="common" title="sort by common name"><g:message code="eya.table.02.th01.a" default="Common Name"/></a></th>
+                            <th class="rightCounts"><a href="0" data-sort="count" title="sort by record count"><g:message code="eya.table.02.th02" default="Records"/></a></th>
+                        </tr>
+                        </thead>
+                        <tbody class="scrollContent">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- .col-md-7 -->
+        <div class="col-md-5 col-xs-12">
 
             <div class="place-map">
                 <h3><span id="occurrenceRecordCount_Overview">[counting]</span> records

@@ -28,6 +28,7 @@
 <g:set var="imageViewerType" value="${grailsApplication.config.imageViewerType?:'LEAFLET'}"></g:set>
 <g:set var="shape_filter" value="${cl + ':"' + clName + '"'}"></g:set>
 <g:set var="placeDetails" value="${placeDetails}"></g:set>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,14 +52,12 @@
     <asset:stylesheet src="ala/images-client.css"/>
     <asset:javascript src="ala/images-client-gallery.js"/>
     <asset:stylesheet src="ala/images-client-gallery.css"/>
-    <asset:javascript src="conservationevidence" />
     <asset:javascript src="jquery.i18n.properties-1.0.9.js" />
     <asset:javascript src="leafletPlugins.js"/>
     <asset:stylesheet src="leafletPlugins.css"/>
 
     <asset:stylesheet src="exploreYourArea.css" />
     <asset:stylesheet src="print-area.css" media="print" />
-
 </head>
 
 <body class="page-taxon">
@@ -238,7 +237,9 @@
         addPreferenceButton: ${imageClient.checkAllowableEditRole()},
         organisationName: "${grailsApplication.config.skin?.orgNameLong}",
         contextPath: "${request.contextPath}",
-        locale: "${org.springframework.web.servlet.support.RequestContextUtils.getLocale(request)}"
+        locale: "${org.springframework.web.servlet.support.RequestContextUtils.getLocale(request)}",
+        image_page_white_go: "${assetPath(src: 'page_white_go.png')}",
+        image_database_go: "${assetPath(src: 'database_go.png')}"
 };
 
 var MAP_CONF_ABOUT = {
@@ -292,13 +293,13 @@ var MAP_CONF_ABOUT = {
         html_MapPAswitch:                "#map-pa-switch",
         html_LegendTable:                "#legendTable",
         html_OccurrenceRecordCountAll:   "#occurrenceRecordCountAll",
-        html_OccurrenceRecordCount:      "#occurrenceRecordCount",
+        html_OccurrenceRecordCount:      ".occurrenceRecordCount",
         html_LeafletMap:                 "#leafletMap",
         html_ColourByLegendToggle:       "#colour-by-legend-toggle",
         html_ColourByControl:            "#colourByControl",
         html_HideColourControl:          "#hideColourControl",
         html_ColourByTemplate:           "#colourbyTemplate",
-}
+};
 
 var MAP_CONF_OVERVIEW = {
         mapType:                    "show",
@@ -357,7 +358,7 @@ var MAP_CONF_OVERVIEW = {
         html_ColourByControl:            "#colourByControl_Overview",
         html_HideColourControl:          "#hideColourControl_Overview",
         html_ColourByTemplate:           "#colourbyTemplate_Overview",
-}
+};
 
 $(function(){
     showPlacePage();
@@ -385,6 +386,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     }
     if (target == '#overview') {
         loadTheMap(MAP_CONF_OVERVIEW);
+
     }
 });
 
