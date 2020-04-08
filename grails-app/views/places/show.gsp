@@ -388,7 +388,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     }
     if (target == '#overview') {
         loadTheMap(MAP_CONF_OVERVIEW);
-
+        loadGroups();
     }
 });
 

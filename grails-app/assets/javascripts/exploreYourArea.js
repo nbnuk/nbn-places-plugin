@@ -20,10 +20,8 @@ $(document).ready(function() {
         groupClicked(e.target);
     });
 
-
     // By default action on page load - show the all species group (simulate a click)
-    //$('#taxa-level-0 tbody td:first').click();
-    loadGroups(); //<-- maybe?
+    //loadGroups(); //only needed if not triggered on tab click, and the tab is already open
 
 
     // QTip tooltips
@@ -151,15 +149,14 @@ function loadRecordsLayer(retry) {
 function groupClicked(el) {
     // Change the global var speciesGroup
     //speciesGroup = $(el).find('a.taxonBrowse').attr('id');
-    console.log("groupClicked: el");
-    console.log(el);
-    console.log($(el).attr('id'));
+    //console.log("groupClicked: el");
+    //console.log(el);
     if ($(el).attr('id') ) {
         speciesGroup = $(el).attr('id');
     } else {
         speciesGroup = $(el).find('a.taxonBrowse').attr('id');
     }
-    console.log("groupClicked = " + speciesGroup);
+    //console.log("groupClicked = " + speciesGroup);
     taxon = null; // clear any species click
     taxonGuid = null;
     //taxa = []; // array of taxa
@@ -187,8 +184,8 @@ function groupClicked(el) {
         pageSize: 50
     };
     //var params = "?latitude=${latitude}&longitude=${longitude}&radius=${radius}&taxa="+taxa+"&rank="+rank;
-    console.log("groupClicked: " + uri);
-    console.log(params);
+    //console.log("groupClicked: " + uri);
+    //console.log(params);
     $('#taxaDiv').html('[loading...]');
     $.getJSON(uri, params, function(data) {
         // process JSON data from request
@@ -201,8 +198,6 @@ function groupClicked(el) {
  */
 function processSpeciesJsonData(data, appendResults) {
     // clear right list unless we're paging
-    console.log("processSpeciesJsonData");
-    console.log(data);
     if (!appendResults) {
         //$('#loadMoreSpecies').detach();
         $('#rightList tbody').empty();
@@ -328,7 +323,7 @@ function processSpeciesJsonData(data, appendResults) {
                 pageSize: 50,
                 qc: SHOW_CONF.biocacheQueryContext
             };
-            console.log("explore params", params, append);
+            //console.log("explore params", params, append);
             //$('#taxaDiv').html('[loading...]');
             $('#loadMoreSpecies').detach(); // delete it
             $.getJSON(uri, params, function(data) {
@@ -350,20 +345,20 @@ function processSpeciesJsonData(data, appendResults) {
 }
 
 /*
- * Perform normal spatial searcj for spceies groups and species counts
+ * Perform normal spatial search for species groups and species counts
  */
 function loadGroups() {
     var url = SHOW_CONF.biocacheServiceUrl +"/explore/groups.json?callback=?";
     var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
-    console.log("shape_filter = " + SHOW_CONF.shape_filter);
-    console.log("shape_filter_unencoded = " + shape_filter_unencoded);
+    //console.log("shape_filter = " + SHOW_CONF.shape_filter);
+    //console.log("shape_filter_unencoded = " + shape_filter_unencoded);
     var params = {
         fq: "(" + shape_filter_unencoded + " AND geospatial_kosher:true AND -occurrence_status:absent)",
         facets: "species_group",
         qc: SHOW_CONF.biocacheQueryContext
     }
-    console.log("loadGroups: url = " + url);
-    console.log(params);
+    //console.log("loadGroups: url = " + url);
+    //console.log(params);
 
     $.getJSON(url, params, function(data) {
         if (data) {
@@ -373,7 +368,7 @@ function loadGroups() {
 }
 
 /*
- * Populate the spceies group column (via callback from AJAX)
+ * Populate the species group column (via callback from AJAX)
  */
 function populateSpeciesGroups(data) {
     if (data.length > 0) {
