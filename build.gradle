@@ -7,10 +7,11 @@ buildscript {
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.14.2"
+        /* classpath "org.grails.plugins:i18n-asset-pipeline:2.0.0" */
     }
 }
 
-version "0.0.1-SNAPSHOT"
+version "0.0.2-SNAPSHOT"
 group "uk.org.nbn.plugins.grails"
 
 apply plugin:"eclipse"
@@ -46,6 +47,7 @@ dependencies {
     provided "org.grails:grails-plugin-services"
     provided "org.grails:grails-plugin-domain-class"
     compile "com.bertramlabs.plugins:asset-pipeline-grails:2.14.2"
+    /* runtime "org.grails.plugins:i18n-asset-pipeline:2.0.0" */
     testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails.plugins:geb"
     testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"

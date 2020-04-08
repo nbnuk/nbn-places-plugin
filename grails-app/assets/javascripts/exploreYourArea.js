@@ -1,13 +1,12 @@
 //= require_self
 
-var map, marker, circle, markerInfowindow, lastInfoWindow, taxon, taxonGuid;
-var points = [], infoWindows = [], speciesGroup = "ALL_SPECIES";
+var taxon, taxonGuid, speciesGroup = "ALL_SPECIES";
+var points = [], infoWindows = []; //TODO: remove?
 
 
 
 $(document).ready(function() {
     // Register events for the species_group column
-    console.log("Explore your area - document ready");
     $('#taxa-level-0').on("mouseover mouseout", 'tr', function() {
         // mouse hover on groups
         if ( event.type == "mouseover" ) {
@@ -18,8 +17,6 @@ $(document).ready(function() {
     }).on("click", "tbody", function(e) {
         // catch the link on the taxon groups table
         e.preventDefault(); // ignore the href text - used for data
-        console.log("---");
-        console.log(e.target);
         groupClicked(e.target);
     });
 
@@ -119,7 +116,6 @@ $(document).ready(function() {
 
 // pointer fn
 function initialize() {
-    //loadMap(); loadRecords? TODO
     loadGroups();
 }
 
@@ -130,8 +126,22 @@ function initialize() {
  * Load (reload) geoJSON data into vector layer
  */
 function loadRecordsLayer(retry) {
-    console.log('loadRecordsLayer');
-    //TODO: refresh map WMS tiles using new criteria
+    //console.log('loadRecordsLayer');
+    if (MAP_CONF_OVERVIEW.map) {
+        //console.log("taxon = " + taxon);
+        //console.log("taxonGuid = " + taxonGuid);
+        //console.log("speciesGroup = " + speciesGroup);
+        if (taxonGuid) {
+            MAP_CONF_OVERVIEW.taxon_filter = "lsid:" + taxonGuid;
+        } else if (speciesGroup != "") {
+            if (speciesGroup == "ALL_SPECIES") {
+                MAP_CONF_OVERVIEW.taxon_filter = "";
+            } else {
+                MAP_CONF_OVERVIEW.taxon_filter = "species_group:" + speciesGroup;
+            }
+        }
+        loadTheMap(MAP_CONF_OVERVIEW); //note, does not refresh the resultsToMapJSON data, so zoom is unaffected (will remain at widest scale for all data)
+    }
 }
 
 
@@ -164,12 +174,11 @@ function groupClicked(el) {
         $("#recordsGroupText").text("selected");
     }
     // load records layer on map
-    //TODO
-    console.log('about to run: loadRecordsLayer()');
-    // update links to downloads and records list
 
-    //if (map) loadRecordsLayer();
-    // AJAX...
+
+    // update links to downloads and records list
+    loadRecordsLayer();
+
     var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?callback=?";
     var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
     var params = {
@@ -279,8 +288,7 @@ function processSpeciesJsonData(data, appendResults) {
         // hide previous selected species info box
         $(this).addClass("activeRow2"); // highlight current taxon
         // show the links for current selected species
-        console.log('species link -> loadRecordsLayer()');
-        //loadRecordsLayer();
+        loadRecordsLayer();
     });
 
     // Register onClick for "load more species" link & sort headers
@@ -320,7 +328,7 @@ function processSpeciesJsonData(data, appendResults) {
                 pageSize: 50,
                 qc: SHOW_CONF.biocacheQueryContext
             };
-            //console.log("explore params", params, append);
+            console.log("explore params", params, append);
             //$('#taxaDiv').html('[loading...]');
             $('#loadMoreSpecies').detach(); // delete it
             $.getJSON(uri, params, function(data) {

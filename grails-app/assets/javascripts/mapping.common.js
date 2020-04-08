@@ -202,7 +202,9 @@ function pointLookup(MAP_CONF, e) {
     }
 
     if (MAP_CONF.mapType == 'show') {
-        spatialQueryUrl = MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery + (MAP_CONF.mapQueryContext > '' ? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) + ')' : '');
+        spatialQueryUrl = MAP_CONF.biocacheServiceUrl + "/occurrences/info" + mapQuery +
+            (MAP_CONF.mapQueryContext > '' ? '&fq=(' + encodeURIComponent(MAP_CONF.mapQueryContext) + ')' : '') +
+            (MAP_CONF.taxon_filter > '' ? '&fq=' + MAP_CONF.taxon_filter : '');
         dataToPass = {
             zoom: MAP_CONF.map.getZoom(),
             lat: e.latlng.wrap().lat,
@@ -519,6 +521,7 @@ function loadMap(MAP_CONF) {
                 htmlEntityDecoder.innerHTML = fqsArr[i];
 
                 var shapeFilterDecoded = $('<textarea/>').html(MAP_CONF.shape_filter).text();
+                var taxonFilterDecoded = $('<textarea/>').html(MAP_CONF.taxon_filter).text();
                 var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded +
                     "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '') +
                     "&fq=" + htmlEntityDecoder.value;
@@ -527,15 +530,17 @@ function loadMap(MAP_CONF) {
                 } else if (MAP_CONF.presenceOrAbsence == 'absence') {
                     url += "&fq=-occurrence_status:present"
                 }
-                //console.log("Mapping records: " + url);
+                url += (taxonFilterDecoded? '&' + 'fq=' + taxonFilterDecoded : '');
                 placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
                 placeLayer[i].addTo(MAP_CONF.placeLayers);
             }
         } else {
             prms["ENV"] = MAP_CONF.mapEnvOptions;
             var shapeFilterDecoded = $('<textarea/>').html(MAP_CONF.shape_filter).text();
+            var taxonFilterDecoded = $('<textarea/>').html(MAP_CONF.taxon_filter).text();
             var url = MAP_CONF.biocacheServiceUrl + "/mapping/wms/reflect?q=" + shapeFilterDecoded +
-                "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '');
+                "&qc=" + mapContextUnencoded + (MAP_CONF.additionalMapFilter? '&' + MAP_CONF.additionalMapFilter : '') +
+                (taxonFilterDecoded? '&' + 'fq=' + taxonFilterDecoded : '');
             if (MAP_CONF.presenceOrAbsence == 'presence') {
                 url += "&fq=occurrence_status:present"
             } else if (MAP_CONF.presenceOrAbsence == 'absence') {

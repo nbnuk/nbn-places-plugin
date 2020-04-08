@@ -1,4 +1,4 @@
-<section class="tab-pane fade in active" id="overview">
+<section class="tab-pane fade" id="overview">
     <div class="row taxon-row">
         <div class="col-md-7 col-xs-12">
             <div id="taxaBox">
