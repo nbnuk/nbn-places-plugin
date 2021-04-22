@@ -20,6 +20,7 @@ class UrlMappings {
         "/logout"(controller: "places", action: "logout")
         "/"(view:"/index")
         "500"(view:'/error')
+        "/weeklydigest/"(controller: "CachedCounts", action: "WeeklyDigest")
 
         name fixResultList: "/search"(controller: "places", action: "search")
     }
