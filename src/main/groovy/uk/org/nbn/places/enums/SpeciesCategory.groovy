@@ -1,0 +1,6 @@
+package uk.org.nbn.places
+
+enum SpeciesCategory {
+        ALL_SPECIES, PLANT, MAMMAL, BIRD, AMPHIBIAN_REPTILE,
+        INVERTEBRATE, LICHEN, FUNGI, GRASSLAND_FUNGI, BRYOPHYTE
+}

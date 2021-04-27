@@ -1,8 +1,13 @@
 package places.plugin
 
+import uk.org.nbn.places.SpeciesCategoryMarshaller
+
 class BootStrap {
 
     def init = { servletContext ->
+
+         [ new SpeciesCategoryMarshaller() ].each { it.register() }
+
         Object.metaClass.trimLength = { Integer stringLength ->
 
             String trimString = delegate?.toString()

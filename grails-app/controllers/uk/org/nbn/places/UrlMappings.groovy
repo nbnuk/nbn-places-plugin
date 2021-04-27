@@ -11,6 +11,7 @@ class UrlMappings {
         // Redirects for BIE web services URLs
         "/geo"(controller: "places", action: "geoSearch")
         "/places/$guid**"(controller: "places", action: "show")
+        "/places/species-count/$guid**"(controller: "places", action: "speciesCount")
         "/search"(controller: "places", action: "search")
         "/place-stats/$guid**"(controller: "places", action: "placeStats")
         "/image-search"(controller: "places", action: "imageSearch")

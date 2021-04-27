@@ -39,7 +39,13 @@ class PlacesController {
     def authService
 
     def recordsFilter = ''
+    def placesService
 
+   
+    def speciesCount(){
+        def results = placesService.getSpeciesCountByPlaceId(params.guid)       
+        render results as JSON
+    }
 
     /*
     * Get taxon count for a place
