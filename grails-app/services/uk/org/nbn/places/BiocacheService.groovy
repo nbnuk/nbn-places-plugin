@@ -1,6 +1,8 @@
 package uk.org.nbn.places
 
 import groovyx.net.http.HTTPBuilder
+import grails.converters.JSON
+import uk.org.nbn.places.webapp2.SearchRequestParamsDTO
 
 class BiocacheService {
     static final int DEFAULT_TIMEOUT_MILLIS = 60000
@@ -88,4 +90,22 @@ class BiocacheService {
             null
         }
     }
+
+ 
+ 
+
+    def getSpeciesCounts(filterQueryList){
+
+        String listAsString =  "[\"${filterQueryList.join('", "')}\"]"
+        log.info listAsString
+          def queryUrl = grailsApplication.config.biocacheService.baseURL + "/explore/groups?q=*:*"+
+                        SearchRequestParamsDTO.buildFilteryQueryParams(filterQueryList)
+        
+            log.info("getPlaceSpeciesCounts query = " + queryUrl)
+            def json = webService.get(queryUrl)
+          
+            
+            JSON.parse(json)
+    }
+    
 }

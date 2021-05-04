@@ -19,6 +19,7 @@ class UrlMappings {
         "/image-search/infoBox"(controller: "places", action: "infoBox")
         "/image-search/$id**"(controller: "places", action: "imageSearch")
         "/logout"(controller: "places", action: "logout")
+        "/admin/"(controller:'admin', action: 'index')
         "/"(view:"/index")
         "500"(view:'/error')
 

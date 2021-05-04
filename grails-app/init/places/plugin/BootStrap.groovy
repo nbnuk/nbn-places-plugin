@@ -1,16 +1,19 @@
 package places.plugin
 
-import uk.org.nbn.places.SpeciesCategoryMarshaller
+import uk.org.nbn.places.CachedSpeciesCountMarshaller
+import uk.org.nbn.places.JobStatusMarshaller
+import uk.org.nbn.places.PlaceMarshaller
+
 
 class BootStrap {
 
     def init = { servletContext ->
 
-         [ new SpeciesCategoryMarshaller() ].each { it.register() }
+         [ new PlaceMarshaller(), new CachedSpeciesCountMarshaller(), new JobStatusMarshaller() ].each { it.register() }
 
         Object.metaClass.trimLength = { Integer stringLength ->
 
-            String trimString = delegate?.toString()
+            String trimString = delegate?.toString()    
             String concatenateString = "..."
             List separators = [".", " "]
 

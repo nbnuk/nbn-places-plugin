@@ -51,14 +51,23 @@ class SearchRequestParamsDTO {
         } else if (fq) {
             queryStr.append("&fq=" + URIUtil.encodeWithinQuery(fq).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":"))
         }
-        queryStr.append("&start=" + start)
-        queryStr.append("&rows=" + rows)
-        queryStr.append("&sort=" + sort)
-        queryStr.append("&dir=" + dir)
+        if (start) queryStr.append("&start=" + start)
+        if (rows)  queryStr.append("&rows=" + rows)
+        if (sort) queryStr.append("&sort=" + sort)
+        if (dir) queryStr.append("&dir=" + dir)
         return queryStr.toString()
+    }
+
+    static String buildFilteryQueryParams(fqList){
+       
+        def queryStr="";
+        def newFq = fqList.collect { URIUtil.encodeWithinQuery(it).replaceAll("%26","&").replaceAll("%3D","=").replaceAll("%3A",":") }
+      
+       return "&fq=" +newFq?.join("&fq=")       
     }
 
     public String toString() {
         return getQueryString()
     }
 }
+

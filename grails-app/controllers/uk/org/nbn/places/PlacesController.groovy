@@ -41,11 +41,8 @@ class PlacesController {
     def recordsFilter = ''
     def placesService
 
-   
-    def speciesCount(){
-        def results = placesService.getSpeciesCountByPlaceId(params.guid)       
-        render results as JSON
-    }
+    
+    
 
     /*
     * Get taxon count for a place
@@ -99,6 +96,21 @@ class PlacesController {
         JSON.use('deep') {
             render searchResults as JSON
         }
+    }
+
+    def speciesCount(){
+        def result = [result:[:]]
+        try {
+            result.result = placesService.getPlaceWithSpeciesCounts(params.guid)         
+        } catch (Exception e) {
+            log.error(e.getMessage(), e)
+        } 
+        if (!result.result){
+            response.status = 404;
+        }
+        else{
+            render result as JSON    
+        }  
     }
 
     /**

@@ -2,10 +2,10 @@ package uk.org.nbn.places
 
 import grails.converters.JSON
 
-class SpeciesCategoryMarshaller {
+class JobStatusMarshaller {
     void register() {
-        JSON.registerObjectMarshaller(SpeciesCategory) {
+        JSON.registerObjectMarshaller(JobStatus) {
              it.name() 
         }
     }
-}
+} 
