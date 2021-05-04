@@ -27,7 +27,7 @@ class ImportService {
             
             def resp;
             def startIndex = 0
-            def rows = grailsApplication.config?.speciesCountImport?.defaultBatchSize ?: 5
+            def rows = grailsApplication.config?.speciesCountImport?.defaultBatchSize ?: 20
             def failedImportThreshold = grailsApplication.config?.speciesCountImport?.failedImportThreshold ?: 1000000
             def abandonImport=false
             def nPlaces;
@@ -38,7 +38,7 @@ class ImportService {
                 if (!nPlaces){
                     nPlaces = searchResultsArr[0]?.searchResults?.totalRecords?:0;
                     jobReport.count3=nPlaces
-                    nPlaces=20; //TODO
+                    //nPlaces=20; //TODO
                 }
 
                 searchResultsArr[0].searchResults.results.each { rs ->           
