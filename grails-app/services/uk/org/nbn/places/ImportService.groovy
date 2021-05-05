@@ -10,77 +10,38 @@ class ImportService {
     def biocacheService
     def bieService
    
-    def importSpeciesCountCache(id){
+
+   def importSpeciesCountCache(id){
         JobReport.withNewSession {
-            log.info "......................................importSpeciesCountCache jobReport:"+id
+            log.info "importSpeciesCountCache jobReport:"+id
          
-            def jobReport = JobReport.findById(id);
-            jobReport.jobStatus = JobStatus.RUNNING
-            jobReport.save(flush:true)
-            log.info "......................................"
-
-            // def jobReport = new JobReport(description:"Import species count cache")
-            // jobReport.startRunning()
-            // jobReport.save(flush:true)
-
+            def jobReport  = new SpeciesCountImportJobReport(inner: JobReport.findById(id))
+            
+            jobReport.inner.jobStatus = JobStatus.RUNNING
+            jobReport.inner.save(flush:true)
+           
             try{
-            
-            def resp;
-            def startIndex = 0
-            def rows = grailsApplication.config?.speciesCountImport?.defaultBatchSize ?: 20
-            def failedImportThreshold = grailsApplication.config?.speciesCountImport?.failedImportThreshold ?: 1000000
-            def abandonImport=false
-            def nPlaces;
-            
-            while (true) {
-                def requestObj = new SearchRequestParamsDTO("", [], startIndex, rows, "", "desc")
-                def searchResultsArr = bieService.searchBie(requestObj)
-                if (!nPlaces){
-                    nPlaces = searchResultsArr[0]?.searchResults?.totalRecords?:0;
-                    jobReport.count3=nPlaces
-                    //nPlaces=20; //TODO
-                }
 
-                searchResultsArr[0].searchResults.results.each { rs ->           
-                    
-                    _dump "Place", rs
+                importPlaces(jobReport)
 
-                    def place = new Place(name:rs.name);
-                    place.id=rs.guid              
-                    place.save(flush:true);
-                
-                importSpeciesCountForPlace(place, jobReport)              
-                
-                }
-                jobReport.increaseCount0 searchResultsArr[0].searchResults.results.size()
-                jobReport.save(flush:true);
+                importSpeciesCount(jobReport)
             
-                startIndex += rows
-
-                if (jobReport.count2>failedImportThreshold) {
-                    abandonImport = true
-                    _fatalError(jobReport, "IMPORT ABANDONED. TOO MANY IMPORT FAILURES.")  
-                }  
-        
-                if ( startIndex >= nPlaces || abandonImport) break;
-            }  
-       
             }
             catch(Exception e){
                 _fatalError(jobReport, e)
             }
             
-            jobReport.finished()
-            jobReport.save(flush:true); 
-        }
-       
+            jobReport.inner.finished()
+            jobReport.inner.save(flush:true); 
+        }   
     }
 
     def retryFailedImportSpeciesCountCache(jobId){
         JobReport.withNewSession {
-            def jobReport = JobReport.findById(jobId);
-            jobReport.startRunningRetry()
-            jobReport.save(flush:true)
+
+            def jobReport  = new SpeciesCountImportJobReport(inner: JobReport.findById(id))           
+            jobReport.inner.startRunningRetry()
+            jobReport.inner.save(flush:true)
             try{
                 def places = Place.findAllByFailedImport(1)
             
@@ -91,10 +52,97 @@ class ImportService {
             catch(Exception e){
                 _fatalError(jobReport, e)
             }
-            jobReport.finished()
-            jobReport.save(flush:true);        
+            jobReport.inner.finished()
+            jobReport.inner.save(flush:true);        
         }        
     }
+    
+    private def importPlaces(jobReport){
+        
+        _info jobReport, "Importing places"
+           
+        def resp;
+        def startIndex = 0
+        def rows = grailsApplication.config?.speciesCountImport?.defaultBatchSize ?: 50
+        def nPlaces;
+            
+        while (true) {
+            def requestObj = new SearchRequestParamsDTO("", [], startIndex, rows, "", "desc")
+            
+            def searchResultsArr = bieService.searchBie(requestObj)
+            if (!nPlaces){
+                nPlaces = searchResultsArr[0]?.searchResults?.totalRecords?:0;
+                //nPlaces=20; //TODO
+            }
+
+            searchResultsArr[0].searchResults.results.each { rs ->           
+                    
+                _dump "Place", rs
+
+                def place = new Place(name:rs.name);
+                place.id=rs.guid              
+                place.save();
+            }
+
+            jobReport.increasePlaceCount searchResultsArr[0].searchResults.results.size()            
+            jobReport.inner.save(flush:true);
+            
+            startIndex += rows
+
+            if ( startIndex >= nPlaces) break;
+        
+        }  
+       
+    }
+
+
+    private def importSpeciesCount(jobReport){
+        
+        _info jobReport, "Importing species counts"
+        
+        def resp;
+        def foffset = 0
+        def flimit = grailsApplication.config?.speciesCountImport?.defaultBatchSize ?: 50
+        def failedImportThreshold = grailsApplication.config?.speciesCountImport?.failedImportThreshold ?: 1000000
+        def abandonImport=false
+        def processedAllPlaces=false;
+        
+        while (true) {
+            def polygons = biocacheService.getPolygonsWhichHaveSpeciesCounts(flimit, foffset)
+              
+            polygons.facetResults[0].fieldResult.each { rs ->           
+                if (!rs.label.equals("Not supplied")) {
+                    
+                    _dump "Polygon", rs
+
+                    def place = Place.findByName(rs.label);
+
+                    _dump "Place", place
+
+                    importSpeciesCountForPlace(place, jobReport) 
+
+                    jobReport.increaseProcessedPlaceCount 1
+                } 
+                else if (polygons.facetResults[0].fieldResult.size()<2) {
+                    processedAllPlaces = true;
+                }                               
+            }
+            
+            jobReport.inner.save(flush:true);
+            
+
+            if (jobReport.getFailedImportCount() > failedImportThreshold) {
+                abandonImport = true
+                _fatalError(jobReport, "IMPORT ABANDONED. TOO MANY IMPORT FAILURES.")  
+            }  
+        
+            if ( processedAllPlaces || abandonImport) break;
+
+            foffset += flimit
+           
+        }
+    }
+
 
     private def importSpeciesCountForPlace(place, jobReport){
         def speciesCounts = biocacheService.getSpeciesCounts(["cl257:\"${place.name}\"", "-occurrence_status:absent"])
@@ -117,8 +165,8 @@ class ImportService {
                 def lst = createCachedSpeciesCountList(place, speciesCounts,speciesCountsOfSpecialInterest);
                 _dump "merged speciesCountslist", lst
                         
-                jobReport.increaseCount1 lst.size()                       
-                jobReport.save(flush:true);  
+                jobReport.increaseSpeciesCountTotal lst.size()                       
+                jobReport.inner.save(flush:true);  
                                           
             }   
                        
@@ -154,7 +202,7 @@ class ImportService {
          public void run() {
             importSpeciesCountCache();
          }
-     }
+    }
 
     private failedImport(place, jobReport, message){       
         place.failedImport=1
@@ -162,10 +210,10 @@ class ImportService {
         place.save(flush:true)
 
         def info = "AN IMPORT FAILED: "+message;
-        jobReport.info = info.length()>250?info.substring(0,250):info 
-        jobReport.hasError=1
-        jobReport.increaseCount2 1 
-        jobReport.save(flush:true)
+        jobReport.inner.info = info.length()>250?info.substring(0,250):info 
+        jobReport.inner.hasError=1
+        jobReport.increaseFailedImportCount 1
+        jobReport.inner.save(flush:true)
 
         log.info message
     }
@@ -174,9 +222,9 @@ class ImportService {
         log.error(exception.getMessage(), exception)
         def info = "IMPORT FATAL ERROR. "+exception.getMessage();
        
-        jobReport.info= info.length()>250?info.substring(0,250):info 
-        jobReport.hasError=1
-        jobReport.save(flush:true)
+        jobReport.inner.info= info.length()>250?info.substring(0,250):info 
+        jobReport.inner.hasError=1
+        jobReport.inner.save(flush:true)
         
     }
 
@@ -184,15 +232,15 @@ class ImportService {
         log.error(message)
         def info = "IMPORT FATAL ERROR. "+message;
         
-        jobReport.info= info.length()>250?info.substring(0,250):info 
-        jobReport.hasError=1
-        jobReport.save(flush:true)
+        jobReport.inner.info= info.length()>250?info.substring(0,250):info 
+        jobReport.inner.hasError=1
+        jobReport.inner.save(flush:true)
         
     }
 
     private _info(jobReport, message){
-        jobReport.info = message
-        jobReport.save(flush:true)
+        jobReport.inner.info = message
+        jobReport.inner.save(flush:true)
 
         log.info message
     }
@@ -203,5 +251,30 @@ class ImportService {
         println obj
         println "..............................DUMP END...................."
     }
+
+
+    class SpeciesCountImportJobReport {
+    
+        JobReport inner;
+
+        void increasePlaceCount(amount){
+            inner.increaseCount3 amount
+        }
+
+        void increaseProcessedPlaceCount(amount){
+            inner.increaseCount0 amount
+        }
+
+        void increaseSpeciesCountTotal(amount){
+            inner.increaseCount1 amount
+        }
+
+        void increaseFailedImportCount(amount){
+            inner.increaseCount2 amount
+        }
+
+        def getFailedImportCount() {return inner.count2}
+    } 
  
 }
+

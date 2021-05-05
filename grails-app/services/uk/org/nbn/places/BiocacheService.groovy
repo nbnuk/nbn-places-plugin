@@ -91,9 +91,6 @@ class BiocacheService {
         }
     }
 
- 
- 
-
     def getSpeciesCounts(filterQueryList){
 
         String listAsString =  "[\"${filterQueryList.join('", "')}\"]"
@@ -106,6 +103,20 @@ class BiocacheService {
           
             
             JSON.parse(json)
+    }
+
+    def getPolygonsWhichHaveSpeciesCounts(flimit, foffset){
+        def queryUrl = grailsApplication.config.biocacheService.baseURL+ 
+                        "/occurrences/search?q=*:*&facets=cl257&pageSize=0&fq=-occurrence_status:absent"
+
+        if (flimit)  queryUrl += "&flimit=${flimit}" 
+        if (foffset) queryUrl += "&foffset=${foffset}"  
+
+        log.info("getPlaceNamesWhichHaveSpeciesCounts query = " + queryUrl)
+          
+        def json = webService.get(queryUrl)
+           
+        JSON.parse(json)
     }
     
 }

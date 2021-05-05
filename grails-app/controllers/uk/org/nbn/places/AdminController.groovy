@@ -14,8 +14,10 @@
  */
 package uk.org.nbn.places
 
+import au.org.ala.web.AlaSecured
 import grails.converters.JSON
 
+@AlaSecured(value = "ROLE_ADMIN", redirectUri = "/")
 class AdminController {
    
     def placesService
