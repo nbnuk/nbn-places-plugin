@@ -4,3 +4,13 @@
 *= require ekko-lightbox.css
 *= require atlas.css
 */
+
+.place-tabs .nav-tabs a {
+    font-size: 20px;
+    color: #874680;
+    filter: none;
+}
+
+.place-tabs .nav-tabs .active a {
+    color: #90C640;
+}

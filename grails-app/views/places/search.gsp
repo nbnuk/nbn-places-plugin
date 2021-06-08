@@ -239,10 +239,10 @@
             <div id="results-tabs" class="place-tabs">
                 <ul class="nav nav-tabs">
                     <li class="active">
-                        <a id="t1" href="#tabs-1" data-toggle="tab">MapTEST</a>
+                        <a id="t1" href="#tabs-1" data-toggle="tab">Map</a>
                      </li>
                     <li>
-                        <a id="t2" href="#tabs-2" data-toggle="tab">ResultsTEST</a>
+                        <a id="t2" href="#tabs-2" data-toggle="tab">Results</a>
                     </li>
 
                 </ul>
