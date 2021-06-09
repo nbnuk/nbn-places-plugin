@@ -37,9 +37,8 @@
     <title>${placeDetails?.name} | ${raw(grailsApplication.config.skin.orgNameLong)}</title>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
     <g:if test="${grailsApplication.config.google.apiKey}">
-    <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apiKey}"
-            type="text/javascript"></script>
-</g:if>
+        <script src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google.apiKey}" type="text/javascript"></script>
+    </g:if>
     <g:else>
         <script src="https://maps.google.com/maps/api/js" type="text/javascript"></script>
     </g:else>
@@ -64,12 +63,11 @@
 <section class="container">
     <header class="pg-header">
         <div class="header-inner">
-
-                <h5 class="pull-right" style="clear:right">
-                    <a href="${request.getAttribute("search_page")}"
-                       title="Back to search" class="btn btn-sm btn-default active">Back to search</a>
-                </h5>
-
+            <h5 class="pull-right" style="clear:right">
+                <a href="${request.getAttribute("search_page")}" title="Back to search" class="btn btn-sm btn-default active">
+                    Back to search
+                </a>
+            </h5>
 
             <h1>${raw(placeNameFormatted)}</h1>
 
@@ -88,8 +86,11 @@
         <div class="place-tabs">
             <ul class="nav nav-tabs">
                 <g:each in="${tabs}" status="ts" var="tab">
-                    <li class="${ts == 0 ? 'active' : ''}"><a href="#${tab}" data-toggle="tab"><g:message
-                            code="label.${tab}" default="${tab}"/></a></li>
+                    <li class="${ts == 0 ? 'active' : ''}">
+                        <a href="#${tab}" data-toggle="tab">
+                            <g:message code="label.${tab}" default="${tab}"/>
+                        </a>
+                    </li>
                 </g:each>
             </ul>
             <div class="tab-content">
