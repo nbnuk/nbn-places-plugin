@@ -1,4 +1,4 @@
-###    [![Build Status](https://travis-ci.org/nbnuk/nbn-places-plugin.svg?branch=master)](https://travis-ci.org/nbnuk/nbn-places-plugin)
+###    [![Build Status](https://travis-ci.com/nbnuk/nbn-places-plugin.svg?branch=master)](https://travis-ci.com/nbnuk/nbn-places-plugin)
 
 ### Languages
 

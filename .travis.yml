@@ -7,13 +7,18 @@ sudo: false
 branches:
   only:
   - master
+  - develop
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
 - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-  - $HOME/.m2
-  - $HOME/.gradle/caches/
-  - $HOME/.gradle/wrapper/
+  - "$HOME/.m2"
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
 after_success:
 - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && travis_retry ./gradlew publish'
+env:
+  global:
+  - secure: ab5gfD0dBtRJNyOaIxi7pF9Aldt+vFCEDoL/nd76FYPHsfSKlQdYgm0UeRGF51SiVX3OWflNkC94P0S81MtTYx5fJk+snsdJMgWLc8PEMGyjduHnCBtN9f7EjLHxCy0H0vppCkXqaS0xxax0/8CpY5IY0nVJqWvbMrjDWxOzJgcRuyo+heOJc9T3RcSPjbH5SvPk8IVjWU7AWwIiVJ8UT5X3bPb9nFUHyKwYCpdkzqa1THMaQgpLtYjveGItIhhjofsEvk5RkR48uyT013+4sO15fFe2IuoW20SdXB0ZRqhJ7jYACMfZ0BhnOmHsJ81AGuKDctNTfQOh0KpfnepKjMsGZiETqPMbEZaiHfZ7U52vOCHinbE9mddRSz3akI+a9l+uWgf+3BmvQfB75kiiCG31DTMp0m5jIAj8d4Ql2rhjlEsCG1CIOEwBTuLE+tne/MukWPWOjVqJle3XESYQkIAZsoJCTILXEhrjf4AOjBSjom5O8Zr8vrBN+PFLrtAjLnzI3XVHdxRnIIiH/qqhs25DD5pjUz7u34rgiDPnw4xFknzY5IjIVNU1nzkfNNfQONP7NQ0So5aKy7Ddk4T7iqCq8z6L63xmzkuhruLRo0PxdIKLGfDgQIAZ1s9H1Dc/fVoECARCOL9Itz8L34Bs7QSvPmnrvqOdfp6vCzZaqq4=
+  - secure: Je6k6HVO2H8Gm04FiY291la1ZkcfA4ehHD4i7q1IOrVMJ4+NnWubIYu1LKsQrdLkppfT2anzbp0Uvga/MWvFXJJXHWb4I2jWHRDbQaOO1JUxq/FsnYhSUlHAQKz1mTNqhKdgJr6cxPUqwvWxgM2GnPZn7dEwdlAsmR7+Dzuvmta2/Ncqj1Py+5vsx2jDbrFsTPVRCfkU6bo4ecbtrwCbJNlgZtqJRZhfi7LIL7V4S1Y1ZLbkxPcemaHr8OPXMEq7xmpotLnlrcIxi3b3mIqLoghLQeLUIuGUG+FG8ctFii6szw1KKZfKLG+GOlZCTduSGzjkVncgHZkMtgpj70u9HgZX8TUE6FDQKJIOdoqxF8T889+whRNiozwKTBsYvq+9JP0HmhQ8gAgMKUgrxIwOAyOxZthB6XjV2jEmTCq7ibIrINF8pDGJP0iE7MoUvQedFLAuzj88YSxgndKrniN7TPeHXfodO3DA9KTUenbj18VjTdEwR9d/055tVtbgVmCFuDOiGb8w4g7atVxeu9QQ0kqGyhRsjbKH2jCqv0rdR+sj1dblH2KDOrFDnWQlvQtnGP1CjOXh3azy6O2JixRZBjVGGZiZuCqJ+cTu69dMM9v1p33etU/kIehaPxZkc4qLffRY+r7+rVJPjO8gRBceSFB8wJ+QOnlxi2zAh4J1k5k=
