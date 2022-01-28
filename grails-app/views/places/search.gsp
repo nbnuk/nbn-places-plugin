@@ -267,7 +267,6 @@
                                     <option value="score" ${(params.sortField == 'score' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'score')) ? "selected=\"selected\"" : ""}>best match</option>
                                     <option value="name" ${(params.sortField == 'name' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'name')) ? "selected=\"selected\"" : ""}>name</option>
                                     <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
-                                    <option value="parish_leg_s" ${(params.sortField == 'parish_leg_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'parish_leg_s')) ? "selected=\"selected\"" : ""}>parish</option>
                                     <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
                                     <option value="occurrenceCount" ${(params.sortField == 'occurrenceCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'occurrenceCount')) ? "selected=\"selected\"" : ""}>records</option>
                                 </select>
@@ -294,7 +293,6 @@
                 <thead style="font-weight:bold">
                 <tr>
                     <td>Name</td>
-                    <td>Parish</td>
                     <td>Diocese</td>
                     <td>Function</td>
                     <td>Records</td>
@@ -306,7 +304,6 @@
 
                         <td><a href="${request.contextPath}/places/${result.guid}">${result.name}</a></td>
 
-                        <td>${result.parish_leg_s}</td>
                         <td>${result.diocese_na_s}</td>
                         <td>${result.function_s}</td>
                         <td>${result.occurrenceCount}</td>
