@@ -28,6 +28,7 @@
 <g:set var="imageViewerType" value="${grailsApplication.config.imageViewerType?:'LEAFLET'}"></g:set>
 <g:set var="shape_filter" value="${cl + ':"' + clName + '"'}"></g:set>
 <g:set var="placeDetails" value="${placeDetails}"></g:set>
+<g:set var="mapCredit" value="${message(code:'label.map-credit.'+placeDetails?.country_s)}"></g:set>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -262,7 +263,7 @@ var MAP_CONF_ABOUT = {
         defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude},
         defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude},
         defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel},
-        mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
+        mapAttribution:             "${mapCredit} | ${raw(grailsApplication.config.skin.orgNameLong)}",
         defaultMapUrl:              "${grailsApplication.config.map.default.url}",
         defaultMapBaselayer:        "${grailsApplication.config.map.default?.baselayer?: 'Minimal'}",
         defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
@@ -322,7 +323,7 @@ var MAP_CONF_OVERVIEW = {
         defaultDecimalLatitude:     ${grailsApplication.config.map?.default?.decimalLatitude},
         defaultDecimalLongitude:    ${grailsApplication.config.map?.default?.decimalLongitude},
         defaultZoomLevel:           ${grailsApplication.config.map?.default?.zoomLevel},
-        mapAttribution:             "${raw(grailsApplication.config.skin.orgNameLong)}",
+        mapAttribution:             "${mapCredit} | ${raw(grailsApplication.config.skin.orgNameLong)}",
         defaultMapUrl:              "${grailsApplication.config.map.default.url}",
         defaultMapBaselayer:        "${grailsApplication.config.map.default?.baselayer?: 'Minimal'}",
         defaultMapAttr:             "${raw(grailsApplication.config.map.default.attr)}",
