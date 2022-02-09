@@ -297,6 +297,8 @@ function addLegendItem(MAP_CONF, name, red, green, blue, rgbhex, hiderangemax){
 
 function setMapTitle (MAP_CONF) {
     if (MAP_CONF.mapType == 'show') {
+        $(MAP_CONF.html_speciesCount).html(MAP_CONF.taxonListCount);
+
         //added checks for >= 0 because if -1 then webservice call timed out
         if (MAP_CONF.pageResultsOccurrenceRecords >= 0) {
             $(MAP_CONF.html_OccurrenceRecordCountAll).html("(" + MAP_CONF.pageResultsOccurrenceRecords.toLocaleString() + " in total)");
@@ -912,7 +914,7 @@ function insertPlaceInfo(placeIndex, searchLink) {
 
     var jsonUrl = "place-stats/" + place['id'] ;
     $.getJSON(jsonUrl, function(data) {
-        var displayHtml = "Occurrences: " + (data.occurrenceCount? data.occurrenceCount.toString() : '0') + '<br/>';
+        var displayHtml = "Occurrences: " + (data.occurrenceCount? data.occurrenceCount.toString() : '-') + '<br/>';
         displayHtml += "Species: " + (data.speciesCount? data.speciesCount.toString() : '0');
         console.log(displayHtml);
         $(MAP_CONF.html_PlaceSummaryStats).html( displayHtml );
