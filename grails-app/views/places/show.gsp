@@ -438,7 +438,7 @@ function downloadMapNow(){
         '&baseMap=' + baseMap +
         '&fileName=' + $('#fileName').val()+'.'+$('#format').val().toLowerCase();
 
-    console.log('downloadUrl', downloadUrl);
+    //console.log('downloadUrl', downloadUrl);
     $('#downloadMap').modal('hide');
     document.location.href = downloadUrl;
 }

@@ -386,7 +386,7 @@ var baseFacetChart = {
 
             //console.log('building datatable -  handle each data item');
             // handle each data item
-            // //console.log('xformedData : ' + xformedData);
+            //console.log('xformedData : ' + xformedData);
 
             $.each(xformedData, function(i,obj) {
                 // filter any crap
@@ -748,8 +748,8 @@ function loadFacetCharts(chartOptions) {
     var chartsDiv = $('#' + (chartOptions.targetDivId ? chartOptions.targetDivId : 'charts'));
     chartsDiv.append($("<span>Loading charts...</span>"));
 
-    console.log('loadFacetCharts');
-    console.log(chartOptions);
+    //console.log('loadFacetCharts');
+    //console.log(chartOptions);
 
     var query = chartOptions.query ? chartOptions.query : buildQueryString(chartOptions.instanceUid);
     $.ajax({
@@ -860,8 +860,8 @@ function buildGenericFacetChart(name, data, query, chartsDiv, chartOptions) {
     // specify the type (for css tweaking)
     $container.addClass('chart-' + opts.chartType);
 
-    console.log('Loading chart');
-    console.log(opts);
+    //console.log('Loading chart');
+    //console.log(opts);
 
     // create the chart
     var chart;

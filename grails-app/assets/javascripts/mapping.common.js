@@ -225,7 +225,7 @@ function pointLookup(MAP_CONF, e) {
         searchLink = '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:%5B' + latMin.toString() + '+TO+' + latMax.toString() + '%5D&fq=longitude:%5B' + lonMin.toString() + '+TO+' + lonMax.toString() + '%5D';
         //spatialQueryUrl = MAP_CONF.bieServiceUrl + '/search?' + mapQuery + '&fq=idxtype:REGIONFEATURED' + '&fq=latitude:[' + latMin.toString() + ' TO ' + latMax.toString() + ']&fq=longitude:[' + lonMin.toString() + ' TO ' + lonMax.toString() + ']';
     }
-    console.log("spatialQueryUrl = " + spatialQueryUrl);
+    //console.log("spatialQueryUrl = " + spatialQueryUrl);
     $.ajax({
         url: spatialQueryUrl,
         jsonp: "callback",
@@ -252,12 +252,12 @@ function pointLookup(MAP_CONF, e) {
                     MAP_CONF.popupLatlng = e.latlng.wrap();
                     insertPlaceInfo(0, searchLink);
                 }
-                console.log(response);
+                //console.log(response);
             }
         },
         error: function (x, t, m) {
             MAP_CONF.map.spin(false);
-            console.log("Error getting point details from WS call");
+            //console.log("Error getting point details from WS call");
         },
 
     });
@@ -439,7 +439,7 @@ function loadMap(MAP_CONF) {
         }
 
         var wmsURL = MAP_CONF.biocacheServiceUrl + "/mapping/wms/places/reflect?q=" + MAP_CONF.query;
-        console.log('wmsURL = ' + wmsURL);
+        //console.log('wmsURL = ' + wmsURL);
 
         */
         var fq = '';
@@ -449,13 +449,13 @@ function loadMap(MAP_CONF) {
             htmlEntityDecoder.innerHTML = MAP_CONF.filterQueryJSON;
             var fqDecodedString = htmlEntityDecoder.value;
             var fqJSON = JSON.parse(fqDecodedString);
-            console.log(fqJSON);
+            //console.log(fqJSON);
             for (var i = 0; i < fqJSON.length; i++) {
                 if (fqJSON[i] != '') {
                     fq += "&fq=" + encodeURIComponent(fqJSON[i]);
                 }
             }
-            console.log(fq);
+            //console.log(fq);
         }
         //console.log("actual query used = " + MAP_CONF.actualQueryUsed);
         var wmsURL = MAP_CONF.biocacheServiceUrl + "/mapping/wms/places/reflect?" + MAP_CONF.actualQueryUsed + fq;
@@ -474,7 +474,7 @@ function loadMap(MAP_CONF) {
                 var url = wmsURL +
                     "&fq=" + encodeURIComponent(fqsArr[i]); //htmlEntityDecoder.value;
 
-                console.log("Mapping places: " + url);
+                //console.log("Mapping places: " + url);
                 placeLayer[i] = L.tileLayer.wms(url, prmsLayer[i]);
                 placeLayer[i].addTo(MAP_CONF.shapeLayers);
             }
@@ -715,7 +715,7 @@ function loadMap(MAP_CONF) {
     MAP_CONF.map.invalidateSize(false);
 
     if (MAP_CONF.mapType == 'show') {
-        console.log(MAP_CONF);
+        //console.log(MAP_CONF);
         if (MAP_CONF.centroid[1] < 91 && MAP_CONF.centroid[0] < 181) { //real values
             var dataBounds = L.latLngBounds(MAP_CONF.shp_sw, MAP_CONF.shp_ne);
             MAP_CONF.map.fitBounds(dataBounds);
@@ -877,7 +877,7 @@ function insertRecordInfo(recordIndex) {
 }
 
 function insertPlaceInfo(placeIndex, searchLink) {
-    console.log("insertPlaceInfo", placeIndex, MAP_CONF.recordList);
+    //console.log("insertPlaceInfo", placeIndex, MAP_CONF.recordList);
     var place = MAP_CONF.recordList[placeIndex];
     var $popupClone = $('.popupPlaceTemplate').clone();
 
@@ -916,7 +916,7 @@ function insertPlaceInfo(placeIndex, searchLink) {
     $.getJSON(jsonUrl, function(data) {
         var displayHtml = "Occurrences: " + (data.occurrenceCount? data.occurrenceCount.toString() : '-') + '<br/>';
         displayHtml += "Species: " + (data.speciesCount? data.speciesCount.toString() : '0');
-        console.log(displayHtml);
+        //console.log(displayHtml);
         $(MAP_CONF.html_PlaceSummaryStats).html( displayHtml );
     });
 

@@ -90,7 +90,7 @@ $(function() {
     $(document).delegate('.showHidePageGroup', 'click', function (e) {
         e.preventDefault();
         var name = $(this).data('name');
-        console.log('toggle on #group_' + name, $('#group_' + name).is(":visible"))
+        //console.log('toggle on #group_' + name, $('#group_' + name).is(":visible"))
         $(this).find('span').toggleClass('right-caret');
         $('#group_' + name).slideToggle(600, function () {
 
