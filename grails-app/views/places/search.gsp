@@ -306,7 +306,7 @@
 
                         <td>${result.diocese_na_s}</td>
                         <td>${result.function_s}</td>
-                        <td>${result.speciesCount}</td>
+                        <td>${result.speciesCount?result.speciesCount:0}</td>
                     </tr>
                 </g:each>
                 </tbody>
