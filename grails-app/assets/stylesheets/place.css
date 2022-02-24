@@ -213,7 +213,3 @@ i#defaultLegendColour {
 .legendTitle {
     font-weight: bold;
 }
-
-.map-buttons a.btn-lg {
-    width: 33.3333% !important;
-}
