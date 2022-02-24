@@ -53,7 +53,7 @@
         });
 
         function imageLoad() {
-            console.log("${grailsApplication.config.bieService.baseURL}/imageSearch/${taxonConcept?.taxonConcept?.guid}?start=" + (currentPage * pageSize) + "&rows=" + pageSize);
+            //console.log("${grailsApplication.config.bieService.baseURL}/imageSearch/${taxonConcept?.taxonConcept?.guid}?start=" + (currentPage * pageSize) + "&rows=" + pageSize);
             processing = true;
             $('#divPostsLoader').html('<img src="${resource(dir: "images", file:"spinner.gif")}"/>');
 

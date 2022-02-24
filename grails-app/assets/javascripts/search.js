@@ -98,9 +98,9 @@ function removeFacet(facetIdx) {
     var q = $.getQueryParam('q') ? $.getQueryParam('q') : SEARCH_CONF.query ; //$.query.get('q')[0];
     var fqList = $.getQueryParam('fq'); //$.query.get('fq');
 
-    console.log('Remove facet...');
-    console.log(facetIdx);
-    console.log(fqList);
+    //console.log('Remove facet...');
+    //console.log(facetIdx);
+    //console.log(fqList);
 
     var paramList = [];
 
@@ -117,7 +117,7 @@ function removeFacet(facetIdx) {
         // empty fq so redirect doesn't happen
         paramList.push("fq=");
     }
-    console.log("new URL: " + window.location.pathname + '?' + paramList.join('&'));
+    //console.log("new URL: " + window.location.pathname + '?' + paramList.join('&'));
     window.location.href = window.location.pathname + '?' + paramList.join('&');
 }
 

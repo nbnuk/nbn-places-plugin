@@ -64,8 +64,9 @@
         <div class="col-md-6">
             <g:if test="${grailsApplication.config.show?.mapResults == 'true'}">
                 <div class="place-map">
-                    <h3><span class="occurrenceRecordCount" id="occurrenceRecordCount">[counting]</span> records
-                        <span id="occurrenceRecordCountAll"></span>
+                    <h3><!--<span class="occurrenceRecordCount" id="occurrenceRecordCount">[counting]</span> records
+                        <span id="occurrenceRecordCountAll"></span>-->
+                        <span id="speciesCount">[counting]</span> species
                         <g:if test="${grailsApplication.config?.show?.mapPresenceAndAbsence == 'true'}">
                             <span class="map-pa-container">
                                 <div id="map-pa-switch" class="map-pa-switch">

@@ -268,7 +268,7 @@
                                     <option value="name" ${(params.sortField == 'name' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'name')) ? "selected=\"selected\"" : ""}>name</option>
                                     <option value="diocese_na_s" ${(params.sortField == 'diocese_na_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'diocese_na_s')) ? "selected=\"selected\"" : ""}>diocese</option>
                                     <option value="function_s" ${(params.sortField == 'function_s' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'function_s')) ? "selected=\"selected\"" : ""}>function</option>
-                                    <option value="occurrenceCount" ${(params.sortField == 'occurrenceCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'occurrenceCount')) ? "selected=\"selected\"" : ""}>records</option>
+                                    <option value="speciesCount" ${(params.sortField == 'speciesCount' || (!params.sortField && grailsApplication.config?.search?.defaultSortField == 'speciesCount')) ? "selected=\"selected\"" : ""}>records</option>
                                 </select>
                             </div>
 
@@ -295,7 +295,7 @@
                     <td>Name</td>
                     <td>Diocese</td>
                     <td>Function</td>
-                    <td>Records</td>
+                    <td>Species</td>
                 </tr>
                 </thead>
                 <tbody>
@@ -306,7 +306,7 @@
 
                         <td>${result.diocese_na_s}</td>
                         <td>${result.function_s}</td>
-                        <td>${result.occurrenceCount}</td>
+                        <td>${result.speciesCount?result.speciesCount:0}</td>
                     </tr>
                 </g:each>
                 </tbody>
