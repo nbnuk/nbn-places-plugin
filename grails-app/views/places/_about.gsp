@@ -106,10 +106,6 @@
                     </g:else>
 
                     <div class="map-buttons">
-                        <a class="btn btn-primary btn-lg"
-                           href="${mapUrl}${recordsFilterToggle? "&fq="+recordsFilter : ""}"
-                           title="${g.message(code:'overview.map.button.records.map.title', default:'View interactive map')}"
-                           role="button"><g:message code="overview.map.button.records.map" default="View Interactive Map"/></a>
                         <g:if test="${grailsApplication.config.map.simpleMapButton.toBoolean()}">
                             <a class="btn btn-primary btn-lg"
                                href='${biocacheUrl}/occurrences/search?q=${shape_filter}${recordsFilterToggle? "&fq="+recordsFilter : ""}#tab_mapView'
