@@ -208,7 +208,7 @@
                                             test="${fieldResult.count == (searchResults?.totalRecords ?: 0) && (grailsApplication.config.search?.hideFacetsThatDoNotFilterFurther == 'true')}">
                                     </g:elseif>
                                     <g:else>
-                                        <li><a href="?${request.queryString}&fq=${facetResult.fieldName}:%22${fieldResult.label}%22">
+                                        <li><a href="?${request.queryString}&fq=${facetResult.fieldName}:%22${fieldResult.label.encodeAsURL()}%22">
                                             <g:message code="${facetResult.fieldName}.${fieldResult.label}"
                                                        default="${fieldResult.label ?: "[unknown]"}"/>
                                         </a>
