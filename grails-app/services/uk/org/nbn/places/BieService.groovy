@@ -248,14 +248,19 @@ class BieService {
 
         //TODO: need to set reasonable flimit and implement paging?
 
-        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':%22' + java.net.URLEncoder.encode(clName, "UTF-8") + '%22&facets=%7B!stats=piv1%7Dnames_and_lsid&apiKey=' + (grailsApplication.config.biocache?.apiKey?:'') + '&stats=%7B!tag=piv1%20max=true%7Dyear';
+        def url = grailsApplication.config.biocacheService.baseURL + '/occurrence/pivotStats?fq=' + cl + ':%22' + java.net.URLEncoder.encode(clName, "UTF-8") + '%22&facets=%7B!stats=piv1%7Dnames_and_lsid&stats=%7B!tag=piv1%20max=true%7Dyear';
 
         url = url + getUrlFqForRecFilter()
         log.info("getTaxonListForPlace with stats before paging = " + url);
         url = url + "&fsort=" + sortField + "&flimit=" + rows + "&foffset=" + startIndex
 
+        def headers = [:]
+        if (grailsApplication.config.biocache?.apiKey) {
+            headers["apikey"] = grailsApplication.config.biocache.apiKey
+        }
+
         log.info("getTaxonListForPlace with stats = " + url);
-        def json = webService.get(url)
+        def json = webService.get(url,headers)
         def tryOldWSWithoutStats = false
         if (!json || json=="{}") {
             tryOldWSWithoutStats = true

@@ -12,13 +12,19 @@ class WebService implements InitializingBean {
         // JSONObject.NULL.metaClass.asBoolean = {-> false}
     }
 
-    def get(String url){
-        get(url,false)
+    def get(String url, Map<String, String> headers = null){
+        get(url,false, headers)
     }
-    def get(String url, boolean throwError) {
+    def get(String url, boolean throwError, Map<String, String> headers = null) {
         log.debug "GET on " + url
         def conn = new URL(url).openConnection()
         try {
+            if(headers) {
+                headers.each {
+                    conn.setRequestProperty(it.key, it.value)
+                }
+            }
+
             conn.setConnectTimeout(20000)
             conn.setReadTimeout(75000)
             return conn.content.text
