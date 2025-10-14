@@ -229,7 +229,7 @@ function pointLookup(MAP_CONF, e) {
     $.ajax({
         url: spatialQueryUrl,
         jsonp: "callback",
-        dataType: (MAP_CONF.mapType == "show"? "jsonp" : "json"),
+        dataType: "json",
         timeout: 30000,
         data: dataToPass,
         success: function (response) {
@@ -852,8 +852,7 @@ function insertRecordInfo(recordIndex) {
     // Get the current record details
     $.ajax({
         url: MAP_CONF_ptr.biocacheServiceUrl + "/occurrences/" + recordUuid + ".json",
-        jsonp: "callback",
-        dataType: "jsonp",
+        dataType: "json",
         success: function(record) {
             MAP_CONF_ptr.map.spin(false);
 

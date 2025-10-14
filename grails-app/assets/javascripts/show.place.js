@@ -63,7 +63,7 @@ function loadDataProviders(){
         url += "&fq=" + encodeURI(bqc_clean);
     }
 
-    url = url + '&facet=on&facets=data_resource_uid&callback=?';
+    url = url + '&facet=on&facets=data_resource_uid';
 
     var uiUrl = SHOW_CONF.biocacheUrl  +
         '/occurrences/search?q=' + mapShapeFilterUnencoded /* SHOW_CONF.shape_filter */;
@@ -72,8 +72,7 @@ function loadDataProviders(){
 
     $.ajax({
         url: url,
-        jsonp: "callback",
-        dataType: "jsonp",
+        dataType: "json",
         success: function (data) {
 
             if (data.totalRecords > 0) {
@@ -162,7 +161,7 @@ function loadOverviewImages(){
         hasPreferredImage = true;
         var prefUrl = SHOW_CONF.biocacheServiceUrl  +
             '/occurrences/search.json?q=image_url:' + SHOW_CONF.preferredImageId +
-            '&fq=-assertion_user_id:*&im=true&facet=off&pageSize=1&start=0&callback=?';
+            '&fq=-assertion_user_id:*&im=true&facet=off&pageSize=1&start=0';
         $.getJSON(prefUrl, function(data){
             //console.log("prefUrl", prefUrl, data);
             if (data && data.totalRecords > 0) {
@@ -182,7 +181,7 @@ function loadOverviewImages(){
     var url = SHOW_CONF.biocacheServiceUrl  +
         '/occurrences/search.json?q=' +
         mapShapeFilterUnencoded + /* 'Amanita' + */
-        '&fq=multimedia:Image&fq=-assertion_user_id:*&im=true&facet=off&pageSize=5&start=0&callback=?';
+        '&fq=multimedia:Image&fq=-assertion_user_id:*&im=true&facet=off&pageSize=5&start=0';
     //console.log('Loading images from: ' + url);
 
     $.getJSON(url, function(data){
@@ -283,7 +282,7 @@ function loadGalleryType(category, start) {
         '/occurrences/search.json?q=' +
         mapShapeFilterUnencoded + /* 'Amanita' + */
         '&fq=multimedia:"Image"&pageSize=' + pageSize +
-        '&facet=off&start=' + start + imageCategoryParams[category] + '&im=true&callback=?';
+        '&facet=off&start=' + start + imageCategoryParams[category] + '&im=true';
 
     //console.log("Gallery URL: " + url);
 

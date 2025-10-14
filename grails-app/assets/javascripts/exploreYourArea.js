@@ -176,7 +176,7 @@ function groupClicked(el) {
     // update links to downloads and records list
     loadRecordsLayer();
 
-    var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?callback=?";
+    var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?";
     var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
     var params = {
         fq: "(" + shape_filter_unencoded + " AND geospatial_kosher:true AND -occurrence_status:absent)",
@@ -311,7 +311,7 @@ function processSpeciesJsonData(data, appendResults) {
             }
             $("div#rightList").data("sort", sortOrder); // save it to the DOM
             // AJAX...
-            var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?callback=?";
+            var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?";
             var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
 
             //var params = "&lat="+$('#latitude').val()+"&lon="+$('#longitude').val()+"&radius="+$('#radius').val()+"&group="+speciesGroup;
@@ -348,7 +348,7 @@ function processSpeciesJsonData(data, appendResults) {
  * Perform normal spatial search for species groups and species counts
  */
 function loadGroups() {
-    var url = SHOW_CONF.biocacheServiceUrl +"/explore/groups.json?callback=?";
+    var url = SHOW_CONF.biocacheServiceUrl +"/explore/groups.json?";
     var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
     //console.log("shape_filter = " + SHOW_CONF.shape_filter);
     //console.log("shape_filter_unencoded = " + shape_filter_unencoded);
