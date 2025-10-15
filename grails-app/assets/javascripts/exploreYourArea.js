@@ -176,7 +176,7 @@ function groupClicked(el) {
     // update links to downloads and records list
     loadRecordsLayer();
 
-    var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?";
+    var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup;
     var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
     var params = {
         fq: "(" + shape_filter_unencoded + " AND geospatial_kosher:true AND -occurrence_status:absent)",
@@ -311,7 +311,7 @@ function processSpeciesJsonData(data, appendResults) {
             }
             $("div#rightList").data("sort", sortOrder); // save it to the DOM
             // AJAX...
-            var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup+".json?";
+            var uri = SHOW_CONF.biocacheServiceUrl + "/explore/group/"+speciesGroup;
             var shape_filter_unencoded = decodeURIComponent(SHOW_CONF.shape_filter).replace(/\+/g," ");
 
             //var params = "&lat="+$('#latitude').val()+"&lon="+$('#longitude').val()+"&radius="+$('#radius').val()+"&group="+speciesGroup;
