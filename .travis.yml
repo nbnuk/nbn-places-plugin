@@ -1,8 +1,7 @@
-install: gradle wrapper --gradle-version 4.2
 language: groovy
 jdk:
-- oraclejdk8
-dist: trusty
+- openjdk8
+dist: xenial
 sudo: false
 branches:
   only:
